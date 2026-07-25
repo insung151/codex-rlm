@@ -1,0 +1,7 @@
+node_modules/
+dist/
+
+# Generated RLM research and private capability material.
+.codex/rlm/
+*.capability
+kernel-env/

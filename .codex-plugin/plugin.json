@@ -1,0 +1,23 @@
+{
+  "name": "codex-rlm",
+  "version": "0.1.0",
+  "description": "Evidence-backed persistent research mode for Codex",
+  "author": {
+    "name": "Codex RLM contributors"
+  },
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "Codex RLM",
+    "shortDescription": "Persistent research with recorded evidence",
+    "longDescription": "Adds an explicit evidence-first research workflow backed by a local RLM runtime.",
+    "developerName": "Codex RLM contributors",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Read",
+      "Write",
+      "Interactive"
+    ],
+    "defaultPrompt": "Use $rlm to investigate this question with persisted evidence."
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "description": "Codex RLM authority and lifecycle compatibility hooks.",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "rlm_(start|status|python|submit_findings|complete|cancel|diagnostic)$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"${PLUGIN_ROOT}/scripts/run-hook.sh\"",
+            "timeout": 10,
+            "statusMessage": "Checking RLM diagnostic authority"
+          }
+        ]
+      }
+    ],
+    "SubagentStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"${PLUGIN_ROOT}/scripts/run-hook.sh\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"${PLUGIN_ROOT}/scripts/run-hook.sh\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"${PLUGIN_ROOT}/scripts/run-hook.sh\"",
+            "timeout": 3
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "rlm": {
+      "command": "./scripts/run-mcp.sh",
+      "args": [],
+      "cwd": "."
+    }
+  }
+}
