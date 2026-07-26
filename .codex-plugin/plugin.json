@@ -1,6 +1,6 @@
 {
   "name": "codex-rlm",
-  "version": "0.1.0-alpha.1",
+  "version": "0.1.0-alpha.2",
   "description": "Evidence-backed persistent research mode for Codex",
   "author": {
     "name": "Codex RLM contributors"

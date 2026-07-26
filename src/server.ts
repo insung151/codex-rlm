@@ -76,7 +76,7 @@ export function createProductionServer(
   const pluginData = resolvePluginData(environment);
   const controller = new RlmController(pluginData, pluginRoot());
   const server = new McpServer(
-    { name: "codex-rlm", version: "0.1.0-alpha.1" },
+    { name: "codex-rlm", version: "0.1.0-alpha.2" },
     {
       instructions:
         "Use RLM only after explicit $rlm invocation. Reserved _rlm_context is a non-secret session pseudonym injected by the hook; never author it. Authority stays in the plugin-private exchange. The local-process Python backend is non-hardened.",

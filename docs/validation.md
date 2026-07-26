@@ -9,6 +9,29 @@ This record distinguishes the implemented local development slice from the
 deferred hardened product. Generated sessions under `.codex/rlm/` are ignored
 runtime evidence and are not source artifacts.
 
+## macOS release-candidate addendum
+
+Release candidate: `0.1.0-alpha.2`
+Candidate date: 2026-07-26
+
+The candidate replaces Linux `/proc` PID records with worker-owned Unix
+control sockets and a parent watchdog, discovers CPython 3.11+ from the trusted
+runtime environment, and adds macOS to the local-process developer-preview
+surface. The design and residual same-user threat are recorded in
+[ADR 0002](./decisions/0002-cross-platform-local-worker-lifecycle.md).
+
+Local candidate verification currently covers 22 Node tests, including
+abnormal owner exit, separate-controller cleanup, rejection of forged registry
+state, stable missing-hook authority errors, and the reported three-claim
+artifact submission shape. Ubuntu and macOS jobs on Node.js 22 and 24 are a
+required remote release gate and are recorded after the candidate commit is
+pushed.
+
+No production sandbox claim is added. The macOS and Linux local-process
+backends remain non-hardened, Python network access remains disabled, and a
+physical macOS Codex hook-to-MCP run remains a post-install compatibility
+check distinct from automated runtime integration tests.
+
 ## Completion evidence
 
 | Contract | Current evidence |

@@ -13,8 +13,8 @@ Python 코드나 host credential이 노출될 수 있는 환경에서는 사용�
 - Codex CLI 0.145.0 또는 compatibility matrix를 다시 통과한 버전
 - Node.js 22 이상
 - 소스에서 빌드할 때만 npm
-- `/usr/bin/python3`에 설치된 Python 3.11 이상
-- worker parent-death 정리를 보장하려면 Linux
+- `PATH`에서 찾을 수 있는 CPython 3.11 이상
+- Linux 또는 macOS
 
 버전을 확인합니다.
 
@@ -22,7 +22,7 @@ Python 코드나 host credential이 노출될 수 있는 환경에서는 사용�
 codex --version
 node --version
 npm --version
-/usr/bin/python3 --version
+python3 --version
 ```
 
 ## 2. 공개 Marketplace에서 설치
@@ -148,6 +148,12 @@ deterministic report로 완료하세요.
 6. 완료 시 master notebook과 report를 검증하고 모든 session worker를
    정리합니다.
 
+Artifact evidence 경로는 현재 lane의 `ARTIFACT_ROOT` 기준 상대
+경로입니다. 예를 들어 위 Python 코드가 `summary.json`을 만들었다면
+`summary.json`으로 제출합니다.
+`lanes/parent/artifacts/summary.json`처럼 artifact root 자체를
+포함하지 마세요.
+
 ## 6. Python lane에서 사용할 경로
 
 각 Python worker에는 다음 두 `Path` 객체가 준비됩니다.
@@ -247,8 +253,9 @@ report에는 프로젝트의 민감한 내용이 포함될 수 있으므로 외�
 ps -eo pid,ppid,args | rg '[/]rlm_worker.py|codex-rlm/.*/dist/src/server.js'
 ```
 
-정상 완료·취소 뒤에는 결과가 없어야 합니다. Linux에서는 control
-plane이 `SIGKILL`되더라도 worker가 parent-death signal로 종료되지만,
+정상 완료·취소 뒤에는 결과가 없어야 합니다. Linux와 macOS에서는
+control plane이 `SIGKILL`되더라도 worker의 parent watchdog이
+종료하며, Linux는 parent-death signal도 함께 사용합니다. 다만
 session metadata는 향후 recovery 기능이 구현되기 전까지 `active`로
 남을 수 있습니다.
 
@@ -257,10 +264,11 @@ session metadata는 향후 recovery 기능이 구현되기 전까지 `active`로
 | 오류 | 의미와 대응 |
 | --- | --- |
 | `AUTHORITY_MISSING` / `AUTHORITY_INVALID` | Hook 신뢰, 설치 snapshot, 현재 Codex 버전의 compatibility를 확인하고 새 thread에서 재시도합니다. |
+| `BACKEND_UNAVAILABLE` | `python3 --version`으로 CPython 3.11+을 확인하고, 필요하면 Codex 실행 전에 `RLM_PYTHON_EXECUTABLE`을 절대 경로로 설정합니다. |
 | `ROLE_FORBIDDEN` | Subagent가 parent 전용 완료·취소 작업을 시도했습니다. Parent에서 수행합니다. |
 | `LANE_BUSY` | 같은 lane에 실행 중인 cell이 있습니다. 완료 또는 timeout을 기다립니다. |
 | Cell status `timed_out` | Cell이 wall-time 제한을 넘었습니다. Timeout cell은 notebook에 남으며 해당 worker는 정리됩니다. |
-| `EVIDENCE_NOT_FOUND` | Finding이 성공한 자기 lane cell 또는 존재하는 자기 artifact를 참조하도록 수정합니다. |
+| `EVIDENCE_NOT_FOUND` | Finding이 성공한 자기 lane cell 또는 존재하는 자기 artifact를 `ARTIFACT_ROOT` 기준 상대 경로로 참조하도록 수정합니다. |
 | `COMPLETION_BLOCKED` | 필수 lane 수, terminal findings, 실행 중 cell을 확인합니다. |
 | `PATH_OUTSIDE_ROOT` / `PATH_SYMLINK_ESCAPE` | `PROJECT_ROOT` 읽기와 `ARTIFACT_ROOT` 쓰기 경계를 지킵니다. |
 

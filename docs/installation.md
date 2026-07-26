@@ -3,17 +3,17 @@
 이 문서는 공개 Git Marketplace에서 Codex RLM을 설치하고, 정상 설치를
 확인하고, 이후 업데이트하거나 제거하는 절차를 설명합니다.
 
-Codex RLM `0.1.0-alpha.1`은 Linux용 Developer Preview입니다. 현재
-Python backend는 로컬 프로세스로 실행되며 **OS 수준의 보안
+Codex RLM `0.1.0-alpha.2`는 Linux 및 macOS용 Developer Preview입니다.
+현재 Python backend는 로컬 프로세스로 실행되며 **OS 수준의 보안
 sandbox가 아닙니다.** 신뢰할 수 없는 Python 코드나 production
 credential이 있는 host에서는 사용하지 마세요.
 
 ## 지원 환경
 
-- Linux
+- Linux 또는 macOS
 - Codex CLI 0.145.0 또는 compatibility matrix를 다시 통과한 버전
 - Node.js 22 이상
-- `/usr/bin/python3`에 설치된 Python 3.11 이상
+- `PATH`에서 찾을 수 있는 CPython 3.11 이상
 - GitHub에 접근할 수 있는 네트워크
 
 공개 Marketplace 설치에는 npm이나 소스 빌드가 필요하지 않습니다.
@@ -21,7 +21,7 @@ credential이 있는 host에서는 사용하지 마세요.
 ```bash
 codex --version
 node --version
-/usr/bin/python3 --version
+python3 --version
 ```
 
 ## 설치
@@ -58,7 +58,7 @@ codex plugin list --marketplace insung151
 다음 항목이 나타나야 합니다.
 
 ```text
-codex-rlm@insung151  installed, enabled  0.1.0-alpha.1
+codex-rlm@insung151  installed, enabled  0.1.0-alpha.2
 ```
 
 ### 3. Hook 검토 및 신뢰
@@ -180,15 +180,38 @@ codex plugin list --marketplace insung151
 확인하세요. 현재 Codex CLI가 지원 compatibility matrix를 통과한
 버전인지도 확인해야 합니다.
 
+Hook timeout 직후 `_rlm_context` 누락이 함께 보이면 설치된 버전이
+`0.1.0-alpha.2` 이상인지 확인하고 Marketplace를 갱신한 뒤 새 대화를
+시작하세요. 이 버전부터 누락된 hook context는 side effect 전에
+`AUTHORITY_MISSING`으로 안정적으로 거부됩니다.
+
 ### Node.js 또는 Python 실행 오류
 
 ```bash
 node --version
-/usr/bin/python3 --version
+python3 --version
+command -v python3
 ```
 
-Node.js 22 이상과 `/usr/bin/python3`의 Python 3.11 이상이 필요합니다.
-현재 릴리스는 다른 Python 경로를 자동 탐색하지 않습니다.
+Node.js 22 이상과 CPython 3.11 이상이 필요합니다. macOS의
+`/usr/bin/python3`가 3.9인 경우 시스템 Python을 바꾸지 말고, 별도로
+설치한 Python 3.11+이 `PATH`에서 먼저 검색되도록 Codex를 실행하세요.
+명시적인 경로가 필요하면 같은 shell에서 다음처럼 설정한 후 Codex를
+시작합니다.
+
+```bash
+export RLM_PYTHON_EXECUTABLE=/absolute/path/to/python3
+"$RLM_PYTHON_EXECUTABLE" --version
+codex
+```
+
+Apple Silicon에서 패키지 관리자가 설치한 Python은 흔히
+`/opt/homebrew/bin/python3`에 있지만, `command -v python3`와
+`python3 --version`으로 실제 경로와 버전을 확인해야 합니다.
+
+`codex --version`이 PATH alias를 만들 수 없다는 warning을 출력해도
+Codex 명령 자체가 실행되고 위 요구사항을 만족한다면 이 플러그인의
+Python 선택 오류와는 별개입니다.
 
 ### `unrecognized plugin install layout`
 

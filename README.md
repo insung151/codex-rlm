@@ -4,7 +4,7 @@ Codex RLM is an opt-in Codex CLI plugin for evidence-first research with
 persistent, lane-isolated Python workers, reproducible notebooks, structured
 findings, and deterministic Markdown reports.
 
-The `0.1.0-alpha.1` developer preview is usable on Codex CLI. It uses a
+The `0.1.0-alpha.2` developer preview is usable on Codex CLI. It uses a
 visibly non-hardened local-process Python backend for development. It does not
 yet provide a production OS sandbox.
 
@@ -12,8 +12,12 @@ yet provide a production OS sandbox.
 
 - Codex CLI 0.145.0 or a release that passes the compatibility matrix;
 - Node.js 22 or newer;
-- Python 3.11 or newer at `/usr/bin/python3`; and
-- Linux for the current parent-death process cleanup guarantee.
+- CPython 3.11 or newer available as `python3` on `PATH`; and
+- Linux or macOS.
+
+If Codex is launched from an environment whose `python3` is older, set
+`RLM_PYTHON_EXECUTABLE` to an absolute CPython 3.11+ executable before
+launching Codex.
 
 ## Install from the public Marketplace
 
@@ -101,11 +105,13 @@ injected into or persisted by Codex events.
 - Cross-process session locking and lane-scoped state updates for native
   subagent MCP processes.
 - Per-cell notebook persistence including failures, timeouts, and truncation.
-- Findings validation against successful persisted cells or rooted artifacts.
+- Findings validation against successful persisted cells or artifact paths
+  relative to the caller's lane `ARTIFACT_ROOT`.
 - Parent-only completion and cancellation.
 - Deterministic master ordering: parent, then subagent creation order.
-- Cleanup on completion, cancellation, timeout, MCP shutdown, and Linux parent
-  death, including workers owned by other lane MCP processes.
+- Cleanup on completion, cancellation, timeout, MCP shutdown, and parent
+  death on Linux and macOS, including workers owned by other lane MCP
+  processes.
 - Minimized worker environment without inherited host credentials.
 - Stable bounded public errors and structural event logs.
 
@@ -134,11 +140,11 @@ release must rerun the parallel-agent matrix; missing or ambiguous identity
 fails closed. See
 [ADR 0001](./docs/decisions/0001-one-time-authority-handles.md).
 
-An uncatchable control-plane `SIGKILL` reaps Linux workers through
-`PR_SET_PDEATHSIG`, but may leave session metadata active until a future
-recovery implementation reconciles it. Normal completion, cancellation,
-timeout, `SessionEnd`, stdin close, `SIGINT`, and `SIGTERM` persist terminal
-state and clean owned workers.
+An uncatchable control-plane `SIGKILL` reaps workers through a parent watchdog;
+Linux additionally uses `PR_SET_PDEATHSIG`. Session metadata may remain active
+until a future recovery implementation reconciles it. Normal completion,
+cancellation, timeout, `SessionEnd`, stdin close, `SIGINT`, and `SIGTERM`
+persist terminal state and clean owned workers.
 
 Project contents and recorded outputs can contain sensitive data. Review
 notebooks and reports before sharing them.
