@@ -2,6 +2,7 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { atomicWriteJson } from "../persistence/atomic.js";
 import type { CellRecord, LaneRecord } from "../domain/types.js";
+import { RlmError } from "../errors.js";
 
 interface NotebookOutput {
   readonly output_type: string;
@@ -117,7 +118,21 @@ export function cellToNotebookCell(
 }
 
 export async function readNotebook(path: string): Promise<NotebookDocument> {
-  return JSON.parse(await readFile(path, "utf8")) as NotebookDocument;
+  try {
+    const notebook = JSON.parse(await readFile(path, "utf8")) as {
+      readonly nbformat?: unknown;
+      readonly cells?: unknown;
+    };
+    if (notebook.nbformat !== 4 || !Array.isArray(notebook.cells)) {
+      throw new Error("invalid notebook structure");
+    }
+    return notebook as NotebookDocument;
+  } catch (error: unknown) {
+    if (error instanceof RlmError) {
+      throw error;
+    }
+    throw new RlmError("PERSISTENCE_FAILED", "notebook could not be read");
+  }
 }
 
 export async function appendCell(

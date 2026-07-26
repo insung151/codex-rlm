@@ -232,6 +232,119 @@ test("parent and subagent research persists evidence and cleans kernels", async 
   assert.doesNotMatch(artifactText, /_rlm_auth|handle/);
 });
 
+test("artifact findings use lane-root-relative paths and return stable errors", async () => {
+  const pluginData = await mkdtemp(join(tmpdir(), "codex-rlm-data-"));
+  const projectRoot = await mkdtemp(join(tmpdir(), "codex-rlm-project-"));
+  const controller = new RlmController(pluginData, process.cwd());
+  const started = await controller.start(
+    await authority(pluginData, "rlm_start", projectRoot, "parent", null),
+    {
+      objective: "Validate artifact evidence paths",
+      requiredLaneCount: 0,
+      idempotencyKey: "start-artifacts-0001",
+    },
+  );
+  const sessionId = started.rlm_session_id as string;
+  const written = await controller.python(
+    await authority(pluginData, "rlm_python", projectRoot, "parent", null),
+    {
+      code: "Path('research-summary.md').write_text('persisted evidence')",
+      timeoutMs: 5_000,
+    },
+  );
+  assert.equal(written.status, "succeeded");
+
+  const claims = [1, 2, 3].map((index) => ({
+    claim: `Artifact-backed claim ${String(index)}`,
+    evidence: [{ kind: "artifact" as const, artifact: "research-summary.md" }],
+    confidence: "high" as const,
+    caveats: [],
+  }));
+  const submitted = await controller.submitFindings(
+    await authority(
+      pluginData,
+      "rlm_submit_findings",
+      projectRoot,
+      "parent",
+      null,
+    ),
+    {
+      claims,
+      noFindings: false,
+      noFindingsReason: null,
+    },
+  );
+  assert.equal(submitted.status, "submitted");
+  await controller.cancel(
+    await authority(pluginData, "rlm_cancel", projectRoot, "parent", null),
+    { reason: "test cleanup", idempotencyKey: "cancel-artifacts-0001" },
+  );
+
+  const missingPluginData = await mkdtemp(join(tmpdir(), "codex-rlm-data-"));
+  const missingProjectRoot = await mkdtemp(
+    join(tmpdir(), "codex-rlm-project-"),
+  );
+  const missingController = new RlmController(
+    missingPluginData,
+    process.cwd(),
+  );
+  await missingController.start(
+    await authority(
+      missingPluginData,
+      "rlm_start",
+      missingProjectRoot,
+      "parent",
+      null,
+    ),
+    {
+      objective: "Reject duplicated artifact-root prefixes",
+      requiredLaneCount: 0,
+      idempotencyKey: "start-missing-artifact-0001",
+    },
+  );
+  await assert.rejects(
+    missingController.submitFindings(
+      await authority(
+        missingPluginData,
+        "rlm_submit_findings",
+        missingProjectRoot,
+        "parent",
+        null,
+      ),
+      {
+        claims: [
+          {
+            claim: "This path incorrectly includes the artifact-root prefix.",
+            evidence: [
+              {
+                kind: "artifact",
+                artifact: "lanes/parent/artifacts/research-summary.md",
+              },
+            ],
+            confidence: "high",
+            caveats: [],
+          },
+        ],
+        noFindings: false,
+        noFindingsReason: null,
+      },
+    ),
+    (error: unknown) =>
+      error instanceof RlmError && error.category === "EVIDENCE_NOT_FOUND",
+  );
+  await missingController.cancel(
+    await authority(
+      missingPluginData,
+      "rlm_cancel",
+      missingProjectRoot,
+      "parent",
+      null,
+    ),
+    { reason: "test cleanup", idempotencyKey: "cancel-missing-artifact-0001" },
+  );
+  assert.deepEqual(controller.pidsForSession(sessionId), []);
+});
+
 test("timeout and cancellation preserve the cell and reap the worker", async () => {
   const pluginData = await mkdtemp(join(tmpdir(), "codex-rlm-data-"));
   const projectRoot = await mkdtemp(join(tmpdir(), "codex-rlm-project-"));

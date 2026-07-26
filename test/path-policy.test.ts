@@ -29,6 +29,16 @@ test("path policy permits rooted paths and rejects traversal and symlinks", asyn
       error instanceof RlmError && error.category === "PATH_SYMLINK_ESCAPE",
   );
   await assert.rejects(
+    resolveExistingPath(canonical, "missing.txt"),
+    (error: unknown) =>
+      error instanceof RlmError && error.category === "EVIDENCE_NOT_FOUND",
+  );
+  await assert.rejects(
+    resolveExistingPath(canonical, "../outside.txt"),
+    (error: unknown) =>
+      error instanceof RlmError && error.category === "PATH_OUTSIDE_ROOT",
+  );
+  await assert.rejects(
     resolveWritableLeaf(join(root, "artifacts"), "../../escape.txt"),
     (error: unknown) =>
       error instanceof RlmError && error.category === "PATH_OUTSIDE_ROOT",

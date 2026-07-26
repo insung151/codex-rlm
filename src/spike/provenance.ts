@@ -4,6 +4,9 @@ import {
   mkdirSync,
   openSync,
   readFileSync,
+  renameSync,
+  rmSync,
+  statSync,
   writeFileSync,
 } from "node:fs";
 import { createHmac, randomBytes } from "node:crypto";
@@ -24,6 +27,7 @@ export interface StructuralEvent {
 
 const KEY_BYTES = 32;
 const DIGEST_HEX_LENGTH = 32;
+const MAX_STRUCTURAL_LOG_BYTES = 256 * 1024;
 
 export function resolvePluginData(environment: NodeJS.ProcessEnv): string {
   const path = environment.PLUGIN_DATA ?? environment.RLM_PLUGIN_DATA;
@@ -80,6 +84,21 @@ export function appendStructuralEvent(
 ): void {
   const eventPath = join(pluginData, "spike", "events.jsonl");
   mkdirSync(dirname(eventPath), { recursive: true, mode: 0o700 });
+  try {
+    if (statSync(eventPath).size >= MAX_STRUCTURAL_LOG_BYTES) {
+      const previousPath = `${eventPath}.previous`;
+      rmSync(previousPath, { force: true });
+      renameSync(eventPath, previousPath);
+    }
+  } catch (error: unknown) {
+    if (
+      !(error instanceof Error) ||
+      !("code" in error) ||
+      (error.code !== "ENOENT" && error.code !== "EEXIST")
+    ) {
+      throw error;
+    }
+  }
   appendFileSync(eventPath, `${JSON.stringify(event)}\n`, {
     encoding: "utf8",
     mode: 0o600,

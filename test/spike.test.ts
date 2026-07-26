@@ -1,11 +1,12 @@
 import assert from "node:assert/strict";
-import { mkdtempSync, readFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, statSync } from "node:fs";
 import { mkdtemp } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 import { processHook } from "../src/spike/hook.js";
 import {
+  appendStructuralEvent,
   classifyTurn,
   digestIdentifier,
   readStructuralEvents,
@@ -124,6 +125,26 @@ test("ordinary tool input is observed but never rewritten", async () => {
     env,
   );
   assert.equal(result, null);
+});
+
+test("structural hook logs rotate at a bounded size", () => {
+  const env = environment();
+  const pluginData = env.PLUGIN_DATA as string;
+  for (let index = 0; index < 4_000; index += 1) {
+    appendStructuralEvent(pluginData, {
+      source: "hook",
+      event: `event-${String(index)}`,
+      session: "a".repeat(32),
+      turn: "b".repeat(32),
+      agent: null,
+      tool: null,
+      correlation: null,
+      rewriteReceived: null,
+    });
+  }
+  const eventPath = join(pluginData, "spike", "events.jsonl");
+  assert.ok(statSync(eventPath).size < 270 * 1024);
+  assert.ok(statSync(`${eventPath}.previous`).size < 270 * 1024);
 });
 
 test("active RLM subagent stop requires terminal findings", async () => {

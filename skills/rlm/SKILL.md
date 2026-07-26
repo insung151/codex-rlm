@@ -37,7 +37,7 @@ subagent gets a separate persistent kernel and notebook.
 Call `rlm_submit_findings` with either:
 
 - one or more claims, each referencing successful cells or persisted lane
-  artifacts; or
+  artifacts by a path relative to that lane's `ARTIFACT_ROOT`; or
 - `no_findings: true` with a non-empty reason.
 
 Natural-language subagent output is advisory. Persisted findings and referenced
@@ -62,6 +62,8 @@ it.
 - Never invent a capability or reserved authority field.
 - Never author `_rlm_context`. The hook injects this non-secret session
   pseudonym; executable authority remains in the plugin-private exchange.
+- If the hook does not inject `_rlm_context`, expect `AUTHORITY_MISSING` and
+  stop. Never retry by authoring the reserved field.
 - Keep normal Codex tools under their existing sandbox and approval behavior.
 - Report a missing or failed hook as a compatibility failure rather than
   bypassing it.

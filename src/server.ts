@@ -7,14 +7,14 @@ import {
   reapAuthorizations,
 } from "./security/authority.js";
 import { RlmController } from "./runtime/controller.js";
-import { publicError } from "./errors.js";
+import { publicError, RlmError } from "./errors.js";
 import { resolvePluginData } from "./spike/provenance.js";
 
 const contextSchema = z.object({
   session: z.string().length(32),
 });
 const contextInput = {
-  _rlm_context: contextSchema.describe(
+  _rlm_context: contextSchema.optional().describe(
     "Reserved non-secret session pseudonym injected by the Codex RLM hook. Never author this field.",
   ),
 };
@@ -26,7 +26,11 @@ const evidenceSchema = z.union([
   }),
   z.object({
     kind: z.literal("artifact"),
-    artifact: z.string().min(1).max(512),
+    artifact: z
+      .string()
+      .min(1)
+      .max(512)
+      .describe("Path relative to the caller lane's ARTIFACT_ROOT."),
   }),
 ]);
 
@@ -81,13 +85,16 @@ export function createProductionServer(
 
   async function authorized(
     operation: string,
-    context: z.infer<typeof contextSchema>,
+    context: z.infer<typeof contextSchema> | undefined,
     input: unknown,
     action: (
       authority: Awaited<ReturnType<typeof consumeAuthorization>>,
     ) => Promise<Record<string, unknown>>,
   ): Promise<ToolResult> {
     try {
+      if (context === undefined) {
+        throw new RlmError("AUTHORITY_MISSING");
+      }
       const authority = await consumeAuthorization(
         pluginData,
         context.session,

@@ -102,6 +102,7 @@ export class RlmController {
     },
   ): Promise<Record<string, unknown>> {
     requireRole(authority, "parent");
+    this.#workers.assertAvailable();
     const session = await this.#sessions.create({
       codexSessionDigest: authority.codexSessionDigest,
       objective: input.objective,
@@ -207,6 +208,9 @@ export class RlmController {
     lane: LaneRecord,
     claims: readonly FindingClaim[],
   ): Promise<void> {
+    if (claims.length === 0) {
+      return;
+    }
     const notebook = await readNotebook(laneNotebook(session, lane));
     for (const claim of claims) {
       if (claim.claim.trim().length === 0 || claim.evidence.length === 0) {

@@ -3,12 +3,15 @@
 Status: Implemented first-slice contracts
 Schema version: 1
 
-All tools receive a reserved `_rlm_context` object from `PreToolUse`. It
+All authorized tools receive a reserved `_rlm_context` object from
+`PreToolUse`. It
 contains only a non-secret digest of the Codex session; users and models do not
 author it. The hook writes the exact operation/input/role authorization to the
 plugin-private exchange, and the server atomically consumes that record before
 protected behavior. Missing, expired, duplicate, or role-incompatible
-authority returns a stable error category.
+authority returns a stable error category. The MCP schema accepts an absent
+reserved field only so a failed or timed-out hook returns
+`AUTHORITY_MISSING`; no protected action executes without it.
 
 | Tool | Roles | Observable result |
 | --- | --- | --- |
@@ -21,9 +24,11 @@ authority returns a stable error category.
 | `rlm_diagnostic` | parent, subagent | Consumed private-authorization role/binding diagnostic |
 
 Cell evidence refers to a successful execution count in the caller's lane
-notebook. Artifact evidence resolves beneath the caller's lane artifact root
-after canonical path and symlink checks. Claims without persisted evidence are
-rejected.
+notebook. Artifact evidence is a relative path from the caller's lane
+`ARTIFACT_ROOT`; it must not include `.codex/rlm/.../lanes/<lane>/artifacts`
+or another artifact-root prefix. It resolves beneath that root after lexical,
+canonical-path, and symlink checks. Claims without persisted evidence are
+rejected with a stable category.
 
 The first slice exposes the stable categories listed in `src/errors.ts`.
 Internal stack traces, authority records, process IDs, private paths, and
