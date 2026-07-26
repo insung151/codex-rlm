@@ -556,7 +556,7 @@ Current evidence:
 | --- | --- |
 | Parent/subagent correlation | Passed on Codex CLI 0.145.0 for parent, one subagent, and two parallel subagents; `agent_id` remains an undocumented dependency |
 | `PreToolUse` rewrite | Passed for direct MCP calls; rewritten values are observable, so ADR 0001 keeps bearer authority private and injects only a session pseudonym; nested code-mode remains unverified |
-| stdio lifecycle cleanup | Passed for completion, cancellation, timeout, normal shutdown, and Linux parent death |
+| stdio lifecycle cleanup | Passed for completion, cancellation, timeout, normal shutdown, and the Linux/macOS-compatible parent watchdog; macOS CI is the release gate |
 | backend label | Passed in status, metadata, notebook, and report |
 | project path controls | Traversal, symlink, write, delete, network, and subprocess regression tests pass for the non-hardened backend |
 | package installation | Not implemented |
@@ -575,8 +575,9 @@ Implemented:
    `SessionEnd` hooks for RLM authority and lifecycle;
 5. notebook and Markdown report persistence;
 6. a non-hardened local Python backend labelled for development;
-7. lane-scoped worker registry records that let the parent reap workers owned
-   by separate subagent MCP processes; and
+7. lane-scoped worker registry records and worker-owned Unix control sockets
+   that let the parent reap workers owned by separate subagent MCP processes
+   without signalling registry PIDs; and
 8. adversarial tests proving RLM authorization and lane isolation.
 
 Resume, remote search, strict mode, UI, and public marketplace publishing were

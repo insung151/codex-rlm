@@ -15,7 +15,7 @@ function processExists(pid: number): boolean {
 
 test(
   "worker exits when its control-plane owner is killed",
-  { skip: process.platform !== "linux", timeout: 10_000 },
+  { skip: process.platform === "win32", timeout: 10_000 },
   async () => {
     const owner = spawn(
       process.execPath,

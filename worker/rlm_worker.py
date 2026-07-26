@@ -12,14 +12,20 @@ import json
 import os
 from pathlib import Path
 import signal
+import socket
 import sys
 import sysconfig
+import threading
+import time
 import traceback
 from typing import Any
 
 
 PROJECT_ROOT = Path(os.environ["RLM_PROJECT_ROOT"]).resolve()
 ARTIFACT_ROOT = Path(os.environ["RLM_ARTIFACT_ROOT"]).resolve()
+CONTROL_SOCKET = Path(os.environ["RLM_CONTROL_SOCKET"])
+SESSION_ID = os.environ["RLM_SESSION_ID"]
+LANE_ID = os.environ["RLM_LANE_ID"]
 MAX_PROTOCOL_LINE = 2_500_000
 RUNTIME_READ_ROOTS = (
     Path(__file__).resolve().parent,
@@ -45,6 +51,71 @@ def _set_parent_death_signal() -> None:
 
 
 _set_parent_death_signal()
+
+
+def _watch_parent(parent_pid: int) -> None:
+    while True:
+        time.sleep(0.1)
+        if os.getppid() != parent_pid:
+            os._exit(0)
+
+
+def _serve_control(listener: socket.socket) -> None:
+    while True:
+        connection, _address = listener.accept()
+        with connection:
+            connection.settimeout(1.0)
+            wire = connection.recv(4096)
+            try:
+                request = json.loads(wire)
+            except (json.JSONDecodeError, UnicodeDecodeError):
+                connection.sendall(b'{"ok":false}\n')
+                continue
+            matches = (
+                request.get("operation") == "stop"
+                and request.get("session_id") == SESSION_ID
+                and request.get("lane_id") == LANE_ID
+            )
+            if not matches:
+                connection.sendall(b'{"ok":false}\n')
+                continue
+            connection.sendall(
+                json.dumps(
+                    {
+                        "ok": True,
+                        "session_id": SESSION_ID,
+                        "lane_id": LANE_ID,
+                    },
+                    separators=(",", ":"),
+                ).encode("utf-8")
+                + b"\n"
+            )
+            connection.shutdown(socket.SHUT_WR)
+            os._exit(0)
+
+
+def _start_lifecycle_controls() -> None:
+    if CONTROL_SOCKET.exists():
+        CONTROL_SOCKET.unlink()
+    listener = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    listener.bind(str(CONTROL_SOCKET))
+    os.chmod(CONTROL_SOCKET, 0o600)
+    listener.listen(1)
+    threading.Thread(
+        target=_serve_control,
+        args=(listener,),
+        name="rlm-control",
+        daemon=True,
+    ).start()
+    threading.Thread(
+        target=_watch_parent,
+        args=(os.getppid(),),
+        name="rlm-parent-watchdog",
+        daemon=True,
+    ).start()
+
+
+_start_lifecycle_controls()
 
 
 def _is_within(root: Path, candidate: Path) -> bool:
@@ -204,6 +275,8 @@ def _execute(code: str, output_limit: int) -> dict[str, object]:
 
 
 def main() -> None:
+    sys.stdout.write('{"type":"ready"}\n')
+    sys.stdout.flush()
     for raw_line in sys.stdin.buffer:
         if len(raw_line) > MAX_PROTOCOL_LINE:
             raise RuntimeError("worker protocol line exceeds bound")
