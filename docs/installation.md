@@ -3,7 +3,7 @@
 이 문서는 공개 Git Marketplace에서 Codex RLM을 설치하고, 정상 설치를
 확인하고, 이후 업데이트하거나 제거하는 절차를 설명합니다.
 
-Codex RLM `0.1.0-alpha.2`는 Linux 및 macOS용 Developer Preview입니다.
+Codex RLM `0.1.0-alpha.3`는 Linux 및 macOS용 Developer Preview입니다.
 현재 Python backend는 로컬 프로세스로 실행되며 **OS 수준의 보안
 sandbox가 아닙니다.** 신뢰할 수 없는 Python 코드나 production
 credential이 있는 host에서는 사용하지 마세요.
@@ -58,7 +58,7 @@ codex plugin list --marketplace insung151
 다음 항목이 나타나야 합니다.
 
 ```text
-codex-rlm@insung151  installed, enabled  0.1.0-alpha.2
+codex-rlm@insung151  installed, enabled  0.1.0-alpha.3
 ```
 
 ### 3. Hook 검토 및 신뢰
@@ -183,7 +183,9 @@ codex plugin list --marketplace insung151
 Hook timeout 직후 `_rlm_context` 누락이 함께 보이면 설치된 버전이
 `0.1.0-alpha.2` 이상인지 확인하고 Marketplace를 갱신한 뒤 새 대화를
 시작하세요. 이 버전부터 누락된 hook context는 side effect 전에
-`AUTHORITY_MISSING`으로 안정적으로 거부됩니다.
+`AUTHORITY_MISSING`으로 안정적으로 거부됩니다. 동일 입력의 병렬
+subagent 호출은 요청별 구분이 추가된 `0.1.0-alpha.3` 이상이
+필요합니다.
 
 ### Node.js 또는 Python 실행 오류
 

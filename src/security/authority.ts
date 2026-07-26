@@ -12,9 +12,10 @@ import { RlmError } from "../errors.js";
 import type { Role } from "../domain/types.js";
 
 export interface AuthorizationRecord {
-  readonly schemaVersion: 1;
+  readonly schemaVersion: 2;
   readonly recordHash: string;
   readonly codexSessionDigest: string;
+  readonly requestDigest: string;
   readonly agentDigest: string | null;
   readonly role: Role;
   readonly operation: string;
@@ -28,6 +29,7 @@ export interface ConsumedAuthority extends AuthorizationRecord {}
 
 export interface IssueAuthorizationInput {
   readonly codexSessionDigest: string;
+  readonly requestDigest: string;
   readonly agentDigest: string | null;
   readonly role: Role;
   readonly operation: string;
@@ -39,7 +41,10 @@ export interface AuthorityClock {
   now(): number;
 }
 
-const DEFAULT_TTL_MS = 15_000;
+// Codex can queue an already-authorized MCP dispatch for several minutes.
+// This window covers dispatch latency only: each record remains one-time and
+// bound to one request, operation, exact input, session, agent, role, and cwd.
+const DEFAULT_TTL_MS = 15 * 60_000;
 
 function canonicalize(value: unknown): unknown {
   if (Array.isArray(value)) {
@@ -77,9 +82,10 @@ export async function issueAuthorization(
     .digest("hex");
   const now = clock.now();
   const record: AuthorizationRecord = {
-    schemaVersion: 1,
+    schemaVersion: 2,
     recordHash,
     codexSessionDigest: input.codexSessionDigest,
+    requestDigest: input.requestDigest,
     agentDigest: input.agentDigest,
     role: input.role,
     operation: input.operation,
@@ -141,13 +147,16 @@ async function availableRecords(
 export async function consumeAuthorization(
   pluginData: string,
   codexSessionDigest: string | undefined,
+  requestDigest: string | undefined,
   expectedOperation: string,
   expectedInput: unknown,
   clock: AuthorityClock = Date,
 ): Promise<ConsumedAuthority> {
   if (
     codexSessionDigest === undefined ||
-    codexSessionDigest.length === 0
+    codexSessionDigest.length === 0 ||
+    requestDigest === undefined ||
+    requestDigest.length === 0
   ) {
     throw new RlmError("AUTHORITY_MISSING");
   }
@@ -155,6 +164,7 @@ export async function consumeAuthorization(
   const matching = (await availableRecords(pluginData)).filter(
     ({ record }) =>
       record.codexSessionDigest === codexSessionDigest &&
+      record.requestDigest === requestDigest &&
       record.operation === expectedOperation &&
       record.inputDigest === inputDigest,
   );

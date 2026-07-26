@@ -11,8 +11,9 @@ behavior and use RLM tools only for RLM-owned state and evidence.
 ## Start
 
 Call `rlm_start` once with the user's research objective, the number of
-required native subagent lanes, and a fresh stable idempotency key for this
-logical start.
+required native subagent lanes (excluding the parent lane), and a fresh stable
+idempotency key for this logical start. For a parent plus two subagents, set
+`required_lane_count` to `2`.
 
 State clearly that `backend.hardened` is `false`. The local-process backend is
 for development and does not provide an OS sandbox.
@@ -60,8 +61,8 @@ it.
 ## Authority discipline
 
 - Never invent a capability or reserved authority field.
-- Never author `_rlm_context`. The hook injects this non-secret session
-  pseudonym; executable authority remains in the plugin-private exchange.
+- Never author `_rlm_context`. The hook injects non-secret session and request
+  pseudonyms; executable authority remains in the plugin-private exchange.
 - If the hook does not inject `_rlm_context`, expect `AUTHORITY_MISSING` and
   stop. Never retry by authoring the reserved field.
 - Keep normal Codex tools under their existing sandbox and approval behavior.

@@ -23,7 +23,7 @@ The following decisions were selected during design review:
 | D4 — Python sandbox | D: non-hardened local development backend plus hardened container backend | Development remains fast while production security claims require the container backend. |
 | D5 — host tool policy | D: additive mode by default | Normal Codex tools retain their existing sandbox and approval behavior. Hooks authenticate RLM MCP calls and observe lifecycle; they do not globally deny host tools. A strict RLM-only profile is a deferred feature. |
 | D6 — subagent creation | A: Codex native subagents | The parent uses native delegation; `SubagentStart` allocates an isolated RLM lane. |
-| D7 — lane capability delivery | Fallback: `PreToolUse` creates a private one-time authorization record and injects only a non-secret session pseudonym | Codex CLI 0.145.0 exposes rewritten MCP arguments in its JSON event stream, so no bearer authority is injected. The server consumes the exact operation/input/role-bound private record before execution. See ADR 0001. |
+| D7 — lane capability delivery | Fallback: `PreToolUse` creates a private one-time authorization record and injects non-secret session/request pseudonyms | Codex CLI 0.145.0 exposes rewritten MCP arguments in its JSON event stream, so no bearer authority is injected. The request pseudonym disambiguates identical parallel calls; the server still requires and consumes the exact operation/input/role-bound private record. See ADR 0001. |
 | D8 — artifact placement | C: reviewable artifacts project-local, private runtime state in `PLUGIN_DATA` | Notebooks, reports, findings, and public metadata live under `.codex/rlm`; capabilities, locks, leases, and process data do not. |
 | D9 — network/search | B: network denied by default with an approval-gated domain allowlist | The first slice has no remote search. A later `rlm_web_search` tool records provenance; Python keeps direct network access disabled. |
 | D10 — Python package policy | C: user-approved `%pip install` | Installation requires an explicit approval path, provenance recording, and a session-scoped environment. Subagents may not install packages independently. |
@@ -127,7 +127,8 @@ client/server protocol.
 
 A skill can direct the model but cannot authenticate a lane. `PreToolUse` hooks
 write short-lived, operation-bound, one-time records to the plugin-private
-exchange and inject only a non-secret session pseudonym into RLM MCP calls.
+exchange and inject only non-secret session/request pseudonyms into RLM MCP
+calls.
 The runtime consumes the private record before execution.
 `SubagentStart`, `SubagentStop`, and `SessionEnd` provide lifecycle points for
 lane allocation, evidence validation, and cleanup.
@@ -536,8 +537,8 @@ Product and architecture decisions are complete. Implementation must still
 prove these assumptions before depending on them:
 
 1. `SubagentStart` identity can be correlated with subsequent subagent
-   `PreToolUse` events; only a non-secret session pseudonym appears in tool
-   arguments while executable authority remains plugin-private.
+   `PreToolUse` events; only non-secret session/request pseudonyms appear in
+   tool arguments while executable authority remains plugin-private.
 2. `PreToolUse` can rewrite RLM MCP arguments consistently in the target Codex
    CLI release, including code-mode nested calls.
 3. The local stdio MCP lifecycle reliably reaps parent and subagent kernels on
@@ -555,7 +556,7 @@ Current evidence:
 | Gate | Status |
 | --- | --- |
 | Parent/subagent correlation | Passed on Codex CLI 0.145.0 for parent, one subagent, and two parallel subagents; `agent_id` remains an undocumented dependency |
-| `PreToolUse` rewrite | Passed for direct MCP calls; rewritten values are observable, so ADR 0001 keeps bearer authority private and injects only a session pseudonym; nested code-mode remains unverified |
+| `PreToolUse` rewrite | Passed for direct MCP calls; rewritten values are observable, so ADR 0001 keeps bearer authority private and injects only session/request pseudonyms; nested code-mode remains unverified |
 | stdio lifecycle cleanup | Passed for completion, cancellation, timeout, normal shutdown, and the Linux/macOS-compatible parent watchdog; macOS CI is the release gate |
 | backend label | Passed in status, metadata, notebook, and report |
 | project path controls | Traversal, symlink, write, delete, network, and subprocess regression tests pass for the non-hardened backend |

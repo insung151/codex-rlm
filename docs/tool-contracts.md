@@ -5,13 +5,19 @@ Schema version: 1
 
 All authorized tools receive a reserved `_rlm_context` object from
 `PreToolUse`. It
-contains only a non-secret digest of the Codex session; users and models do not
-author it. The hook writes the exact operation/input/role authorization to the
-plugin-private exchange, and the server atomically consumes that record before
-protected behavior. Missing, expired, duplicate, or role-incompatible
-authority returns a stable error category. The MCP schema accepts an absent
-reserved field only so a failed or timed-out hook returns
+contains only non-secret digests of the Codex session and Codex `tool_use_id`;
+users and models do not author it. The request digest selects one exact private
+record so identical parallel calls do not collide; it grants no authority
+without that record. The hook writes the exact operation/input/role
+authorization to the plugin-private exchange, and the server atomically
+consumes that record before protected behavior. Missing, expired, replayed,
+forged, or role-incompatible authority returns a stable error category. The
+MCP schema accepts an absent reserved field only so a failed or timed-out hook
+returns
 `AUTHORITY_MISSING`; no protected action executes without it.
+
+`rlm_start.required_lane_count` is the number of required native subagent
+lanes. It excludes the parent lane: parent plus two subagents uses `2`.
 
 | Tool | Roles | Observable result |
 | --- | --- | --- |

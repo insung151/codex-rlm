@@ -3,6 +3,25 @@
 All notable changes to Codex RLM are documented here. The project follows
 [Semantic Versioning](https://semver.org/).
 
+## [0.1.0-alpha.3] - 2026-07-26
+
+### Fixed
+
+- Identical parallel subagent calls now consume distinct request-bound private
+  authorization records instead of failing with `AUTHORITY_INVALID`.
+- Parent cancellation and other already-authorized calls tolerate up to 15
+  minutes of bounded Codex-to-MCP dispatch queue latency.
+- `required_lane_count` now explicitly documents that it counts required
+  native subagent lanes and excludes the parent lane.
+
+### Security
+
+- Request pseudonyms select an exact private record but do not replace
+  server-side session, agent, role, operation, input, cwd, expiry, and one-time
+  consumption checks.
+- Missing, forged, replayed, and expired request selectors fail closed before
+  protected behavior.
+
 ## [0.1.0-alpha.2] - 2026-07-26
 
 ### Added
@@ -44,5 +63,6 @@ All notable changes to Codex RLM are documented here. The project follows
 - This developer preview uses a non-hardened local-process Python backend.
   Python audit hooks are defense in depth and are not an OS security boundary.
 
+[0.1.0-alpha.3]: https://github.com/insung151/codex-rlm/releases/tag/v0.1.0-alpha.3
 [0.1.0-alpha.2]: https://github.com/insung151/codex-rlm/releases/tag/v0.1.0-alpha.2
 [0.1.0-alpha.1]: https://github.com/insung151/codex-rlm/releases/tag/v0.1.0-alpha.1

@@ -127,6 +127,10 @@ $rlm 두 subagent를 병렬로 사용하세요. 첫 번째는 data/sales.csv의
 deterministic report로 완료하세요.
 ```
 
+내부 `rlm_start.required_lane_count`는 parent를 제외한 필수 native
+subagent lane 수입니다. 따라서 parent 1개와 subagent 2개를 사용하면
+값은 `2`입니다.
+
 요청에는 다음 항목을 구체적으로 적는 것이 좋습니다.
 
 - 연구할 파일과 질문
@@ -263,7 +267,7 @@ session metadata는 향후 recovery 기능이 구현되기 전까지 `active`로
 
 | 오류 | 의미와 대응 |
 | --- | --- |
-| `AUTHORITY_MISSING` / `AUTHORITY_INVALID` | Hook 신뢰, 설치 snapshot, 현재 Codex 버전의 compatibility를 확인하고 새 thread에서 재시도합니다. |
+| `AUTHORITY_MISSING` / `AUTHORITY_INVALID` | Hook 신뢰, 설치 snapshot, 현재 Codex 버전의 `tool_use_id`/`agent_id` compatibility를 확인하고 새 thread에서 재시도합니다. 동일 입력의 병렬 호출은 alpha.3 이상이 필요합니다. |
 | `BACKEND_UNAVAILABLE` | `python3 --version`으로 CPython 3.11+을 확인하고, 필요하면 Codex 실행 전에 `RLM_PYTHON_EXECUTABLE`을 절대 경로로 설정합니다. |
 | `ROLE_FORBIDDEN` | Subagent가 parent 전용 완료·취소 작업을 시도했습니다. Parent에서 수행합니다. |
 | `LANE_BUSY` | 같은 lane에 실행 중인 cell이 있습니다. 완료 또는 timeout을 기다립니다. |

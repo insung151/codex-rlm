@@ -4,7 +4,7 @@ Codex RLM is an opt-in Codex CLI plugin for evidence-first research with
 persistent, lane-isolated Python workers, reproducible notebooks, structured
 findings, and deterministic Markdown reports.
 
-The `0.1.0-alpha.2` developer preview is usable on Codex CLI. It uses a
+The `0.1.0-alpha.3` developer preview is usable on Codex CLI. It uses a
 visibly non-hardened local-process Python backend for development. It does not
 yet provide a production OS sandbox.
 
@@ -94,8 +94,8 @@ The workflow creates:
 
 Capabilities, one-time authorization records, process records, and lifecycle
 state stay under the plugin's private `PLUGIN_DATA` directory. Codex-visible
-tool input contains only a non-secret session pseudonym; no bearer authority is
-injected into or persisted by Codex events.
+tool input contains only non-secret session and request pseudonyms; no bearer
+authority is injected into or persisted by Codex events.
 
 ## Implemented behavior
 

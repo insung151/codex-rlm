@@ -32,8 +32,8 @@ their existing sandbox/approval behavior. A bundled local stdio MCP server owns
 RLM sessions, isolated parent/subagent lanes, Python workers, notebooks,
 findings, and reports. Plugin hooks correlate native Codex lifecycle events
 with RLM lanes, write short-lived one-time authorization records to a private
-exchange, and inject only a non-secret session pseudonym into RLM MCP calls.
-The runtime consumes each matching private record before execution. Every
+exchange, and inject only non-secret session/request pseudonyms into RLM MCP
+calls. The runtime consumes each matching private record before execution. Every
 subagent gets an independent kernel and notebook. Only the parent may finalize
 the research session.
 

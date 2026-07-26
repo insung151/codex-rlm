@@ -26,6 +26,7 @@ test("PreToolUse rewrites only the replacement argument object", async () => {
     {
       session_id: "session-secret",
       turn_id: "turn-secret",
+      tool_use_id: "tool-secret",
       cwd: process.cwd(),
       hook_event_name: "PreToolUse",
       tool_name: "mcp__rlm__rlm_diagnostic",
@@ -42,6 +43,8 @@ test("PreToolUse rewrites only the replacement argument object", async () => {
   const updated = specific.updatedInput as Record<string, unknown>;
   assert.equal(updated.label, "parent");
   assert.equal(typeof updated._rlm_context, "object");
+  const context = updated._rlm_context as Record<string, unknown>;
+  assert.equal(typeof context.request, "string");
   assert.equal(updated._rlm_auth, undefined);
 
   const log = readFileSync(
@@ -66,6 +69,7 @@ test("SubagentStart and PreToolUse correlate by redacted session and turn", asyn
     {
       session_id: "session-a",
       turn_id: "turn-a",
+      tool_use_id: "tool-a",
       cwd: process.cwd(),
       hook_event_name: "PreToolUse",
       tool_name: "mcp__rlm__rlm_diagnostic",
@@ -82,7 +86,25 @@ test("SubagentStart and PreToolUse correlate by redacted session and turn", asyn
   const context = updated._rlm_context as Record<string, unknown>;
   assert.equal(typeof context.session, "string");
   assert.equal((context.session as string).length, 32);
+  assert.equal((context.request as string).length, 32);
   assert.equal(updated._rlm_auth, undefined);
+});
+
+test("RLM PreToolUse fails closed when tool_use_id is missing", async () => {
+  const env = environment();
+  const result = await processHook(
+    {
+      session_id: "session-a",
+      turn_id: "turn-a",
+      cwd: process.cwd(),
+      hook_event_name: "PreToolUse",
+      tool_name: "mcp__rlm__rlm_status",
+      tool_input: {},
+    },
+    env,
+  );
+  const specific = result?.hookSpecificOutput as Record<string, unknown>;
+  assert.equal(specific.permissionDecision, "deny");
 });
 
 test("two agents sharing one turn are classified ambiguous", () => {

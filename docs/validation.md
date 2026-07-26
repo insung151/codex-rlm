@@ -9,6 +9,19 @@ This record distinguishes the implemented local development slice from the
 deferred hardened product. Generated sessions under `.codex/rlm/` are ignored
 runtime evidence and are not source artifacts.
 
+## Parallel-authority release-candidate addendum
+
+Release candidate: `0.1.0-alpha.3`
+Candidate date: 2026-07-26
+
+The candidate binds each private authorization record to a non-secret request
+pseudonym derived from Codex `tool_use_id`. Automated coverage proves that
+identical parallel subagent calls consume their own agent-bound records, while
+missing, forged, replayed, duplicate, input-mismatched, and expired attempts
+fail closed. A 15-minute one-time dispatch window covers the observed
+approximately 697-second host queue delay. `required_lane_count` is explicitly
+defined as subagent lanes excluding the parent.
+
 ## macOS release-candidate addendum
 
 Release candidate: `0.1.0-alpha.2`
@@ -50,7 +63,7 @@ check distinct from automated runtime integration tests.
 | Parent-only terminal actions | Final lane A received `ROLE_FORBIDDEN` from a live subagent `rlm_complete` attempt. Integration tests deny both subagent completion and cancellation. |
 | Deterministic finalization | The final parent observed exactly two submitted lanes, submitted explicit `no_findings`, and produced a validated master notebook and report. Assembly is parent first, then lane creation index. |
 | Process cleanup | No `rlm_worker.py` or RLM MCP server remained after final completion. Tests cover completion, cancellation, timeout, normal MCP shutdown, Linux parent death, and parent cleanup of workers registered by separate lane controllers. |
-| No authority or credential leakage | Codex-visible arguments contain only non-secret `_rlm_context.session`; private one-time records are consumed and removed on `SessionEnd`. Artifact/private-log scans found no `_rlm_auth`, test credential marker, common private-key header, or bearer authority. Worker environment inheritance is minimized and host reads outside project/artifact/runtime roots are denied as defense in depth. |
+| No authority or credential leakage | Codex-visible arguments contain only non-secret `_rlm_context` session/request pseudonyms; private one-time records are consumed and removed on `SessionEnd`. Artifact/private-log scans found no `_rlm_auth`, test credential marker, common private-key header, or bearer authority. Worker environment inheritance is minimized and host reads outside project/artifact/runtime roots are denied as defense in depth. |
 | Automated checks | `npm run typecheck`, 15 Node tests, `npm audit --omit=dev`, plugin validation, and skill validation pass. |
 | User documentation | `README.md` and `docs/user-guide.md` contain requirements, build/install/reinstall, prompt examples, `$rlm` lifecycle, path use, artifact inspection, cancellation, troubleshooting, security label, and limitations. |
 

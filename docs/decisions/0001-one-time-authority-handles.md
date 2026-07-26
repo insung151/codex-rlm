@@ -1,7 +1,7 @@
 # ADR 0001: Keep one-time authority in a private exchange
 
-Status: Accepted
-Date: 2026-07-25
+Status: Accepted, amended
+Date: 2026-07-25; amended 2026-07-26
 Supersedes: Design D7-C authority transport
 
 ## Context
@@ -24,6 +24,13 @@ release-specific compatibility gate, not a portable security assumption.
 The MCP child process also did not inherit `PLUGIN_DATA`; only plugin hooks are
 documented to receive it.
 
+The alpha.2 multi-lane matrix then demonstrated a second compatibility
+constraint. Two subagents may issue the same operation with identical input at
+the same time. Matching private records only by session, operation, and input
+made both legitimate calls ambiguous. Codex may also queue an authorized MCP
+dispatch for more than the original 15-second record lifetime; one observed
+parent cancellation reached the server after approximately 697 seconds.
+
 ## Alternatives
 
 1. Inject a reusable signed envelope.
@@ -35,7 +42,13 @@ documented to receive it.
    Rejected because neither is authorization.
 4. Keep an operation-bound one-time record in a plugin-private exchange and
    inject only a non-secret session pseudonym.
-   Selected because model-visible data carries no executable authority.
+   Selected initially because model-visible data carries no executable
+   authority, but insufficient for identical parallel calls.
+5. Serialize all identical RLM calls.
+   Rejected because it would weaken the approved parallel-lane architecture.
+6. Add a hook-derived request pseudonym to select one exact private record.
+   Selected because it disambiguates calls without conveying any authority
+   beyond the already visible exact request.
 
 ## Decision
 
@@ -46,13 +59,23 @@ For every protected RLM call, the hook:
    role, operation, canonical input digest, cwd, and expiry under
    `PLUGIN_DATA`;
 3. writes that record with private directory/file permissions; and
-4. injects only the non-secret Codex session digest as `_rlm_context.session`.
+4. derives a non-secret request pseudonym from Codex `tool_use_id`; and
+5. injects the non-secret session and request pseudonyms as `_rlm_context`.
 
-The MCP server finds exactly one record matching the injected session digest,
-operation, and original input digest. It atomically moves the record to the
-consumed directory before any protected side effect. Zero or multiple matches,
-expiry, role incompatibility, or lifecycle disagreement fail closed. Stable
-errors never expose private record contents.
+The MCP server finds exactly one record matching the injected session and
+request pseudonyms, operation, and original input digest. The request
+pseudonym is a selector, not standalone authority: no call succeeds unless an
+exact private record also exists, and the record remains bound to the Codex
+session, agent, role, operation, canonical input, cwd, and expiry. The server
+atomically moves the record to the consumed directory before any protected
+side effect. Missing or forged selectors, replay, expiry, role
+incompatibility, or lifecycle disagreement fail closed. Stable errors never
+expose private record contents.
+
+Private records have a 15-minute dispatch window to cover bounded host queue
+latency. This does not extend an executing operation or make a record reusable.
+`SessionEnd` removes outstanding records, and each accepted record is consumed
+once before execution. Missing `tool_use_id` denies the RLM call.
 
 Consumed and expired records are bounded and reaped. Random record identifiers
 and agent bindings never enter Codex-visible tool input, notebooks, reports, or
@@ -65,23 +88,33 @@ explicit isolated data root.
 
 ## Security and compatibility consequences
 
-- No bearer capability or authority handle is present in Codex events.
+- No bearer capability or standalone authority handle is present in Codex
+  events.
 - Exact operation and canonical-input matching prevents authority substitution.
 - Consume-before-execute ordering remains a security contract.
-- Concurrent identical calls for the same session are deliberately ambiguous
-  and fail closed rather than selecting a record.
+- Concurrent identical calls use distinct request pseudonyms and retain their
+  server-side agent binding.
+- A copied request pseudonym cannot widen authority; it can only race the exact
+  one-time request already represented by the visible arguments.
+- The longer dispatch window increases the time in which that exact request
+  can be raced, so one-time atomic consumption and `SessionEnd` cleanup remain
+  mandatory.
 - Current `agent_id` mapping must be verified for every supported Codex CLI
-  release, including concurrent subagents and code-mode calls.
+  release. Stable `tool_use_id` presence is also a release gate.
 - Hook/runtime disagreement or an unrecognized plugin install layout denies
   RLM operations without changing ordinary host-tool behavior.
 
 ## Verification evidence
 
-- live parent rewrite reaches the MCP server with only `_rlm_context`;
+- live parent rewrite reaches the MCP server with only non-secret session and
+  request pseudonyms in `_rlm_context`;
 - one live subagent call shows matching redacted `agent_id` equality;
-- parallel subagents resolve to distinct lanes or fail closed;
+- parallel identical subagent calls consume distinct private records and
+  preserve their agent bindings;
 - first consumption succeeds and replay fails before side effects;
-- expired, wrong-operation, wrong-role, and exact-input mismatch attempts fail;
+- missing or forged request selectors, expiry, wrong-operation, wrong-role,
+  and exact-input mismatch attempts fail;
+- delayed dispatch succeeds before 15 minutes and fails after the boundary;
 - artifacts, notebooks, reports, and bounded logs contain no bearer authority
   or reusable capability; and
 - ordinary non-RLM tool input remains unchanged.

@@ -19,6 +19,7 @@ import { SessionRepository } from "../domain/session-repository.js";
 interface HookInput {
   readonly session_id?: unknown;
   readonly turn_id?: unknown;
+  readonly tool_use_id?: unknown;
   readonly agent_id?: unknown;
   readonly hook_event_name?: unknown;
   readonly tool_name?: unknown;
@@ -139,7 +140,11 @@ export async function processHook(
   const cwd = optionalString(
     (input as HookInput & { readonly cwd?: unknown }).cwd,
   );
-  if (session === null || turn === null || cwd === null) {
+  const request = digestIdentifier(
+    pluginData,
+    optionalString(input.tool_use_id),
+  );
+  if (session === null || turn === null || request === null || cwd === null) {
     return deny("RLM authority context is incomplete");
   }
   if (agent !== null) {
@@ -156,6 +161,7 @@ export async function processHook(
 
   await issueAuthorization(pluginData, {
     codexSessionDigest: session,
+    requestDigest: request,
     agentDigest: agent,
     role: agent === null ? "parent" : "subagent",
     operation,
@@ -169,7 +175,7 @@ export async function processHook(
       permissionDecision: "allow",
       updatedInput: {
         ...objectInput(input.tool_input),
-        _rlm_context: { session: session },
+        _rlm_context: { session, request },
       },
     },
   };

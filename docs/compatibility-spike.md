@@ -125,7 +125,7 @@ If any identity criterion is unreliable:
 1. save the redacted evidence;
 2. write an ADR explaining the failed assumption;
 3. select the approved fallback: short-lived one-time private authorization
-   records plus a non-secret injected session pseudonym;
+   records plus non-secret injected session/request pseudonyms;
 4. update `DESIGN.md`, hook/tool contracts, and threat model; and
 5. re-run this matrix for the fallback.
 
@@ -145,9 +145,11 @@ Codex CLI 0.145.0 on Linux produced these redacted observations:
 
 The second observation fails the invisibility criterion even though input
 rewriting itself works. ADR 0001 therefore keeps operation-bound one-time
-authorization records in the plugin-private exchange and injects only a
-non-secret session pseudonym. Parallel-agent and code-mode correlation remain
-required compatibility tests; ambiguity must fail closed.
+authorization records in the plugin-private exchange and injects only
+non-secret session and request pseudonyms. The request pseudonym derives from
+`tool_use_id` and disambiguates identical parallel calls without replacing the
+private record. Parallel-agent and code-mode correlation remain required
+compatibility tests; missing identity must fail closed.
 
 The final installed two-agent matrix passed on the local `0.1.0` build: both
 separate MCP processes persisted distinct lanes, parent status observed both,

@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { randomUUID } from "node:crypto";
 import {
   mkdtemp,
   readFile,
@@ -27,8 +28,10 @@ async function authority(
   agentDigest: string | null,
   input: unknown = {},
 ): Promise<ConsumedAuthority> {
+  const requestDigest = `request-${randomUUID()}`;
   await issueAuthorization(pluginData, {
     codexSessionDigest: "codex-session-a",
+    requestDigest,
     agentDigest,
     role,
     operation,
@@ -38,6 +41,7 @@ async function authority(
   return consumeAuthorization(
     pluginData,
     "codex-session-a",
+    requestDigest,
     operation,
     input,
   );
