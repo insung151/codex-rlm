@@ -410,11 +410,7 @@ export class WorkerManager {
         settled = true;
         clearTimeout(timeout);
         connection.destroy();
-        if (result === "stopped") {
-          setTimeout(() => resolve("stopped"), 50);
-        } else {
-          resolve(result);
-        }
+        resolve(result);
       };
       const timeout = setTimeout(() => finish("failed"), 1_000);
       connection.setEncoding("utf8");
@@ -442,7 +438,16 @@ export class WorkerManager {
             response.ok === true &&
             response.session_id === sessionId &&
             response.lane_id === laneId;
-          finish(valid ? "stopped" : "failed");
+          if (!valid) {
+            finish("failed");
+            return;
+          }
+          settled = true;
+          clearTimeout(timeout);
+          connection.destroy();
+          void this.#waitForControlClosure(controlSocket).then((closed) =>
+            resolve(closed ? "stopped" : "failed"),
+          );
         } catch (error: unknown) {
           finish("failed");
         }
@@ -456,6 +461,33 @@ export class WorkerManager {
       });
       connection.once("end", () => finish("failed"));
     });
+  }
+
+  async #waitForControlClosure(controlSocket: string): Promise<boolean> {
+    for (let attempt = 0; attempt < 20; attempt += 1) {
+      const closed = await new Promise<boolean>((resolve) => {
+        const probe = createConnection(controlSocket);
+        let settled = false;
+        const finish = (result: boolean): void => {
+          if (settled) {
+            return;
+          }
+          settled = true;
+          probe.destroy();
+          resolve(result);
+        };
+        probe.once("connect", () => finish(false));
+        probe.once("error", (error: NodeJS.ErrnoException) =>
+          finish(error.code === "ENOENT" || error.code === "ECONNREFUSED"),
+        );
+      });
+      if (closed) {
+        await new Promise((resolve) => setTimeout(resolve, 50));
+        return true;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    }
+    return false;
   }
 
   async #reapRegisteredSession(sessionId: string): Promise<void> {

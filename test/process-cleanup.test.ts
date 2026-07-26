@@ -26,13 +26,26 @@ test(
       },
     );
     const lines = createInterface({ input: owner.stdout });
-    const [line] = (await once(lines, "line")) as [string];
+    let ownerStderr = "";
+    owner.stderr.setEncoding("utf8");
+    owner.stderr.on("data", (chunk: string) => {
+      ownerStderr += chunk;
+    });
+    const ownerExit = once(owner, "exit");
+    const [line] = (await Promise.race([
+      once(lines, "line"),
+      ownerExit.then(() => {
+        throw new Error(
+          `worker owner exited before readiness: ${ownerStderr.slice(-2_000)}`,
+        );
+      }),
+    ])) as [string];
     const workerPid = Number.parseInt(line, 10);
     assert.ok(Number.isSafeInteger(workerPid));
     assert.equal(processExists(workerPid), true);
 
     owner.kill("SIGKILL");
-    await once(owner, "exit");
+    await ownerExit;
     const deadline = Date.now() + 5_000;
     while (processExists(workerPid) && Date.now() < deadline) {
       await new Promise((resolve) => setTimeout(resolve, 25));
