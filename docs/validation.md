@@ -75,6 +75,13 @@ Current packaging checks:
 - Repository and bundle scans found no credential patterns, private key
   headers, local home-directory paths, raw capabilities, or personal email
   addresses.
+- `codex plugin marketplace add insung151/codex-plugins` cloned the public Git
+  marketplace, and `codex plugin add codex-rlm@insung151` installed and enabled
+  `0.1.0-alpha.1`.
+- The public Marketplace snapshot, installed Codex cache, and source bundle
+  produced the same server SHA-256. Both remote snapshot and installed cache
+  contained no `node_modules`; the installed hook and MCP entry points started
+  and exited successfully from the standalone bundles.
 
 ## Deferred work and residual risk
 
