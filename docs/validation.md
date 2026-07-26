@@ -55,6 +55,27 @@ Live runs used `--dangerously-bypass-hook-trust` only because they were vetted
 non-interactive automation. They did not bypass Codex sandbox or approval
 policy.
 
+## Developer preview packaging
+
+Release candidate: `0.1.0-alpha.1`
+Packaging date: 2026-07-26
+
+The Marketplace package includes standalone esbuild bundles for the MCP server
+and lifecycle hook. Runtime startup therefore requires Node.js but does not
+require an npm install or a writable plugin source directory. The build also
+generates `THIRD_PARTY_NOTICES.md` from the dependencies actually present in
+the bundles.
+
+Current packaging checks:
+
+- `npm test`: all 15 tests pass after building the standalone bundles.
+- `npm audit` and `npm audit --omit=dev`: no known vulnerabilities.
+- Plugin and skill schema validation pass.
+- Both generated JavaScript entry points pass `node --check`.
+- Repository and bundle scans found no credential patterns, private key
+  headers, local home-directory paths, raw capabilities, or personal email
+  addresses.
+
 ## Deferred work and residual risk
 
 - The `local-process` Python backend is explicitly non-hardened. Audit hooks
@@ -67,7 +88,7 @@ policy.
 - Direct MCP calls passed. Nested code-mode authority correlation remains
   unverified and is not claimed as a supported surface.
 - Codex App, IDE, Cloud, strict RLM-only mode, automatic DLP, plugin UI, and
-  public marketplace publication remain out of scope.
+  OpenAI universal directory publication remain out of scope.
 - An uncatchable control-plane `SIGKILL` reaps Linux workers through
   `PR_SET_PDEATHSIG` but can leave active metadata for future restart
   reconciliation.

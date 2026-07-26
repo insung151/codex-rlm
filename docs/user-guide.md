@@ -24,7 +24,39 @@ npm --version
 /usr/bin/python3 --version
 ```
 
-## 2. 빌드와 로컬 설치
+## 2. 공개 Marketplace에서 설치
+
+공개 Git Marketplace를 등록하고 플러그인을 설치합니다.
+
+```bash
+codex plugin marketplace add insung151/codex-plugins
+codex plugin add codex-rlm@insung151
+codex plugin list
+```
+
+목록에 다음과 같이 나타나야 합니다.
+
+```text
+codex-rlm@insung151  installed, enabled
+```
+
+새 버전이 배포되면 Marketplace snapshot을 갱신하고 다시 설치합니다.
+
+```bash
+codex plugin marketplace upgrade insung151
+codex plugin add codex-rlm@insung151
+```
+
+제거하려면 다음 명령을 사용합니다.
+
+```bash
+codex plugin remove codex-rlm@insung151
+```
+
+업데이트한 skill과 MCP schema가 확실히 로드되도록 설치 또는 업데이트
+후에는 새 Codex thread를 시작하세요.
+
+## 3. 소스에서 빌드해 로컬 설치
 
 저장소 루트에서 의존성을 재현 가능하게 설치하고 빌드합니다.
 
@@ -41,7 +73,7 @@ codex plugin add codex-rlm@personal
 codex plugin list
 ```
 
-목록에 다음과 같이 나타나야 합니다.
+로컬 Marketplace를 사용하면 목록에 다음과 같이 나타나야 합니다.
 
 ```text
 codex-rlm@personal  installed, enabled
@@ -55,10 +87,7 @@ python3 ~/.codex/skills/.system/plugin-creator/scripts/update_plugin_cachebuster
 codex plugin add codex-rlm@personal
 ```
 
-업데이트한 skill과 MCP schema가 확실히 로드되도록 새 Codex thread를
-시작하세요.
-
-## 3. Hook 신뢰 설정
+## 4. Hook 신뢰 설정
 
 대화형 Codex에서 `/hooks`를 열고 `codex-rlm`이 제공하는 hook source를
 검토한 뒤 신뢰하세요. Hook이 없거나 신뢰되지 않으면 RLM authority가
@@ -74,7 +103,7 @@ codex exec --dangerously-bypass-hook-trust '$rlm ...'
 이 옵션은 hook trust 확인만 우회합니다. 일반적인 실행에서 Codex
 sandbox나 approval policy를 우회하지 마세요.
 
-## 4. 첫 연구 실행
+## 5. 첫 연구 실행
 
 프로젝트 디렉터리에서 새 Codex 대화를 시작하고 `$rlm`을 명시적으로
 호출합니다.
@@ -116,7 +145,7 @@ deterministic report로 완료하세요.
 6. 완료 시 master notebook과 report를 검증하고 모든 session worker를
    정리합니다.
 
-## 5. Python lane에서 사용할 경로
+## 6. Python lane에서 사용할 경로
 
 각 Python worker에는 다음 두 `Path` 객체가 준비됩니다.
 
@@ -145,7 +174,7 @@ artifact root 밖의 쓰기, network, subprocess, `ctypes`를 거부합니다.
 이는 defense in depth일 뿐, 악의적인 코드에 대한 OS security
 boundary는 아닙니다.
 
-## 6. 산출물 확인
+## 7. 산출물 확인
 
 완료된 session은 프로젝트 아래에 생성됩니다.
 
@@ -189,7 +218,7 @@ sed -n '1,240p' .codex/rlm/<session-id>/report.md
 report에는 프로젝트의 민감한 내용이 포함될 수 있으므로 외부 공유
 전에 반드시 검토하세요.
 
-## 7. 취소와 오류 복구
+## 8. 취소와 오류 복구
 
 연구를 중단하려면 같은 parent 대화에서 다음처럼 요청합니다.
 
@@ -232,7 +261,7 @@ session metadata는 향후 recovery 기능이 구현되기 전까지 `active`로
 | `COMPLETION_BLOCKED` | 필수 lane 수, terminal findings, 실행 중 cell을 확인합니다. |
 | `PATH_OUTSIDE_ROOT` / `PATH_SYMLINK_ESCAPE` | `PROJECT_ROOT` 읽기와 `ARTIFACT_ROOT` 쓰기 경계를 지킵니다. |
 
-## 8. 현재 지원하지 않는 기능
+## 9. 현재 지원하지 않는 기능
 
 - hardened container sandbox와 CPU·memory quota
 - control-plane restart 후 resume/evidence replay
@@ -242,7 +271,7 @@ session metadata는 향후 recovery 기능이 구현되기 전까지 `active`로
 - nested code-mode authority compatibility 보장
 - Codex App, IDE, Cloud
 - 자동 secret detection/DLP
-- public marketplace 배포
+- OpenAI 범용 공개 디렉터리 배포
 
 구현 상태와 검증 증거는 [validation.md](./validation.md), architecture
 contract는 [DESIGN.md](../DESIGN.md), public tool contract는

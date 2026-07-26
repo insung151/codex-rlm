@@ -1,6 +1,6 @@
 {
   "name": "codex-rlm",
-  "version": "0.1.0",
+  "version": "0.1.0-alpha.1",
   "private": true,
   "description": "Evidence-backed persistent research mode for Codex",
   "license": "Apache-2.0",
@@ -9,9 +9,11 @@
     "node": ">=22"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "npm run clean && npm run typecheck && npm run bundle",
+    "build:test": "tsc -p tsconfig.json",
+    "bundle": "node scripts/build-plugin.mjs",
     "clean": "node scripts/clean.mjs",
-    "test": "npm run build && node --test dist/test/**/*.test.js",
+    "test": "npm run build && npm run build:test && node --test .test-dist/test/**/*.test.js",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
@@ -20,6 +22,7 @@
   },
   "devDependencies": {
     "@types/node": "26.1.1",
+    "esbuild": "0.28.1",
     "typescript": "7.0.2"
   },
   "overrides": {

@@ -19,7 +19,7 @@ test(
   async () => {
     const owner = spawn(
       process.execPath,
-      ["dist/test/fixtures/worker-owner.js"],
+      [".test-dist/test/fixtures/worker-owner.js"],
       {
         cwd: process.cwd(),
         stdio: ["ignore", "pipe", "pipe"],

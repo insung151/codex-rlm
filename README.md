@@ -4,18 +4,46 @@ Codex RLM is an opt-in Codex CLI plugin for evidence-first research with
 persistent, lane-isolated Python workers, reproducible notebooks, structured
 findings, and deterministic Markdown reports.
 
-The first implementation slice is usable on Codex CLI. It uses a visibly
-non-hardened local-process Python backend for development. It does not yet
-provide a production OS sandbox.
+The `0.1.0-alpha.1` developer preview is usable on Codex CLI. It uses a
+visibly non-hardened local-process Python backend for development. It does not
+yet provide a production OS sandbox.
 
 ## Requirements
 
 - Codex CLI 0.145.0 or a release that passes the compatibility matrix;
-- Node.js 22 or newer and npm;
+- Node.js 22 or newer;
 - Python 3.11 or newer at `/usr/bin/python3`; and
 - Linux for the current parent-death process cleanup guarantee.
 
-## Build and install locally
+## Install from the public Marketplace
+
+Add the public Git Marketplace, then install the plugin:
+
+```bash
+codex plugin marketplace add insung151/codex-plugins
+codex plugin add codex-rlm@insung151
+codex plugin list
+```
+
+Start a new Codex conversation after installation. Open `/hooks` once and
+review/trust the bundled hooks before starting an RLM session.
+
+To update to the latest published preview:
+
+```bash
+codex plugin marketplace upgrade insung151
+codex plugin add codex-rlm@insung151
+```
+
+To uninstall:
+
+```bash
+codex plugin remove codex-rlm@insung151
+```
+
+## Build and install from source
+
+Source builds additionally require npm.
 
 ```bash
 npm ci
@@ -29,15 +57,14 @@ personal local marketplace, then install it:
 codex plugin add codex-rlm@personal
 ```
 
-Codex runs an installed cache snapshot. Reinstall after local changes:
+Codex runs an installed cache snapshot. Reinstall after local source changes:
 
 ```bash
 python3 ~/.codex/skills/.system/plugin-creator/scripts/update_plugin_cachebuster.py .
 codex plugin add codex-rlm@personal
 ```
 
-Open `/hooks` once in Codex and review/trust the bundled hooks. For vetted
-non-interactive automation only, Codex also supports
+For vetted non-interactive automation only, Codex also supports
 `--dangerously-bypass-hook-trust`.
 
 ## Use
@@ -108,7 +135,7 @@ Not implemented yet:
 - user-approved session-scoped package installation;
 - strict RLM-only host-tool mode;
 - Codex App, IDE, or Cloud compatibility;
-- plugin UI or public marketplace publication; and
+- plugin UI or universal OpenAI directory publication; and
 - automatic secret detection/DLP.
 
 Subagent `PreToolUse.agent_id` was observed in Codex CLI 0.145.0 but is not

@@ -1,5 +1,5 @@
 node_modules/
-dist/
+.test-dist/
 
 # Generated RLM research and private capability material.
 .codex/rlm/

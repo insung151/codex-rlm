@@ -1,10 +1,19 @@
 {
   "name": "codex-rlm",
-  "version": "0.1.0",
+  "version": "0.1.0-alpha.1",
   "description": "Evidence-backed persistent research mode for Codex",
   "author": {
     "name": "Codex RLM contributors"
   },
+  "homepage": "https://github.com/insung151/codex-rlm#readme",
+  "repository": "https://github.com/insung151/codex-rlm",
+  "license": "Apache-2.0",
+  "keywords": [
+    "codex",
+    "research",
+    "evidence",
+    "notebook"
+  ],
   "skills": "./skills/",
   "mcpServers": "./.mcp.json",
   "interface": {
@@ -18,6 +27,8 @@
       "Write",
       "Interactive"
     ],
-    "defaultPrompt": "Use $rlm to investigate this question with persisted evidence."
+    "defaultPrompt": [
+      "Use $rlm to investigate this question with persisted evidence."
+    ]
   }
 }
