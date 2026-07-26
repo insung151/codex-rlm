@@ -2,7 +2,13 @@ import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { once } from "node:events";
 import { createServer, type Socket } from "node:net";
-import { mkdir, mkdtemp, stat, writeFile } from "node:fs/promises";
+import {
+  mkdir,
+  mkdtemp,
+  realpath,
+  stat,
+  writeFile,
+} from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
@@ -76,7 +82,10 @@ test("unverified control replies block cleanup and preserve the registry", async
   );
   await mkdir(controlRoot, { recursive: true, mode: 0o700 });
   await mkdir(registryRoot, { recursive: true });
-  const controlSocket = join(controlRoot, "aaaaaaaaaaaa.sock");
+  const controlSocket = join(
+    await realpath(controlRoot),
+    "aaaaaaaaaaaa.sock",
+  );
   const registryPath = join(registryRoot, `${laneId}.json`);
   let acceptedConnection: Socket | undefined;
   const server = createServer((connection) => {
