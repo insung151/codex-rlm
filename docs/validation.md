@@ -20,12 +20,18 @@ runtime environment, and adds macOS to the local-process developer-preview
 surface. The design and residual same-user threat are recorded in
 [ADR 0002](./decisions/0002-cross-platform-local-worker-lifecycle.md).
 
-Local candidate verification currently covers 22 Node tests, including
+Local candidate verification covers 22 Node tests, including
 abnormal owner exit, separate-controller cleanup, rejection of forged registry
 state, stable missing-hook authority errors, and the reported three-claim
-artifact submission shape. Ubuntu and macOS jobs on Node.js 22 and 24 are a
-required remote release gate and are recorded after the candidate commit is
-pushed.
+artifact submission shape. The
+[Ubuntu and macOS CI matrix](https://github.com/insung151/codex-rlm/actions/runs/30194963080)
+passed on Node.js 22 and 24 with CPython 3.11.
+
+The first macOS candidate runs exposed the platform's shorter Unix socket path
+limit and PID-reap timing differences. Those failures were treated as design
+feedback: long plugin-data paths now use a validated owner-only short control
+endpoint while the registry remains plugin-private, and cleanup verifies the
+endpoint and owning child state instead of probing a registry PID.
 
 No production sandbox claim is added. The macOS and Linux local-process
 backends remain non-hardened, Python network access remains disabled, and a
