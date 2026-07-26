@@ -3,6 +3,26 @@
 All notable changes to Codex RLM are documented here. The project follows
 [Semantic Versioning](https://semver.org/).
 
+## [0.1.0-alpha.4] - 2026-07-27
+
+### Fixed
+
+- Installed-plugin instructions now use the actual qualified skill invocation
+  `$codex-rlm:rlm`; `$codex-rlm` is explicitly documented as unsupported.
+- `AUTHORITY_MISSING` now returns bounded recovery guidance for missing hook
+  context or missing `PreToolUse.tool_use_id` compatibility instead of only
+  echoing the category.
+
+### Changed
+
+- Automation and prompts using the previously documented `$rlm` name must
+  migrate to `$codex-rlm:rlm` for the Marketplace-installed plugin.
+
+### Security
+
+- Missing authority continues to fail before protected behavior, and recovery
+  messages expose no session, request, capability, path, or private record.
+
 ## [0.1.0-alpha.3] - 2026-07-26
 
 ### Fixed
@@ -63,6 +83,7 @@ All notable changes to Codex RLM are documented here. The project follows
 - This developer preview uses a non-hardened local-process Python backend.
   Python audit hooks are defense in depth and are not an OS security boundary.
 
+[0.1.0-alpha.4]: https://github.com/insung151/codex-rlm/releases/tag/v0.1.0-alpha.4
 [0.1.0-alpha.3]: https://github.com/insung151/codex-rlm/releases/tag/v0.1.0-alpha.3
 [0.1.0-alpha.2]: https://github.com/insung151/codex-rlm/releases/tag/v0.1.0-alpha.2
 [0.1.0-alpha.1]: https://github.com/insung151/codex-rlm/releases/tag/v0.1.0-alpha.1

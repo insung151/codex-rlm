@@ -1,6 +1,7 @@
 # Codex RLM 사용 가이드
 
-이 문서는 로컬 Codex CLI에서 Codex RLM을 설치하고, `$rlm` 연구를
+이 문서는 로컬 Codex CLI에서 Codex RLM을 설치하고,
+`$codex-rlm:rlm` 연구를
 실행하고, 생성된 evidence를 검토하는 방법을 설명합니다.
 
 현재 구현은 개발용 `local-process` Python backend를 사용합니다. 이
@@ -100,7 +101,7 @@ codex plugin add codex-rlm@personal
 검토가 끝난 비대화형 자동화에서만 다음 옵션을 사용할 수 있습니다.
 
 ```bash
-codex exec --dangerously-bypass-hook-trust '$rlm ...'
+codex exec --dangerously-bypass-hook-trust '$codex-rlm:rlm ...'
 ```
 
 이 옵션은 hook trust 확인만 우회합니다. 일반적인 실행에서 Codex
@@ -108,20 +109,21 @@ sandbox나 approval policy를 우회하지 마세요.
 
 ## 5. 첫 연구 실행
 
-프로젝트 디렉터리에서 새 Codex 대화를 시작하고 `$rlm`을 명시적으로
+프로젝트 디렉터리에서 새 Codex 대화를 시작하고
+`$codex-rlm:rlm`을 명시적으로
 호출합니다.
 
 단일 연구 lane 예시:
 
 ```text
-$rlm data/sales.csv의 월별 매출과 이상치를 조사하고, 모든 결론을
+$codex-rlm:rlm data/sales.csv의 월별 매출과 이상치를 조사하고, 모든 결론을
 persisted cell evidence에 연결한 보고서를 작성해 주세요.
 ```
 
 두 개의 독립 subagent lane을 사용하는 예시:
 
 ```text
-$rlm 두 subagent를 병렬로 사용하세요. 첫 번째는 data/sales.csv의
+$codex-rlm:rlm 두 subagent를 병렬로 사용하세요. 첫 번째는 data/sales.csv의
 추세를, 두 번째는 이상치를 독립적으로 분석하세요. 각 subagent는
 자기 notebook cell을 근거로 findings를 제출하고, parent는 두 결과를
 deterministic report로 완료하세요.
@@ -140,7 +142,7 @@ subagent lane 수입니다. 따라서 parent 1개와 subagent 2개를 사용하�
 - findings에 요구하는 confidence 또는 caveat
 
 일반적으로 사용자가 `rlm_start`, `rlm_python` 같은 내부 MCP tool을
-직접 호출할 필요는 없습니다. `$rlm` skill이 다음 lifecycle을
+직접 호출할 필요는 없습니다. `$codex-rlm:rlm` skill이 다음 lifecycle을
 조정합니다.
 
 1. parent가 연구 session을 시작합니다.
@@ -267,7 +269,7 @@ session metadata는 향후 recovery 기능이 구현되기 전까지 `active`로
 
 | 오류 | 의미와 대응 |
 | --- | --- |
-| `AUTHORITY_MISSING` / `AUTHORITY_INVALID` | Hook 신뢰, 설치 snapshot, 현재 Codex 버전의 `tool_use_id`/`agent_id` compatibility를 확인하고 새 thread에서 재시도합니다. 동일 입력의 병렬 호출은 alpha.3 이상이 필요합니다. |
+| `AUTHORITY_MISSING` / `AUTHORITY_INVALID` | 새 thread에서 정확히 `$codex-rlm:rlm`을 사용하고 `/hooks` 신뢰를 확인합니다. `$codex-rlm`은 alias가 아닙니다. session-only context 안내가 나오면 현재 Codex의 `tool_use_id` compatibility를 확인합니다. |
 | `BACKEND_UNAVAILABLE` | `python3 --version`으로 CPython 3.11+을 확인하고, 필요하면 Codex 실행 전에 `RLM_PYTHON_EXECUTABLE`을 절대 경로로 설정합니다. |
 | `ROLE_FORBIDDEN` | Subagent가 parent 전용 완료·취소 작업을 시도했습니다. Parent에서 수행합니다. |
 | `LANE_BUSY` | 같은 lane에 실행 중인 cell이 있습니다. 완료 또는 timeout을 기다립니다. |

@@ -1,11 +1,35 @@
 import assert from "node:assert/strict";
-import { mkdtemp } from "node:fs/promises";
+import { mkdtemp, readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { createProductionServer } from "../src/server.js";
+import {
+  AUTHORITY_HOOK_GUIDANCE,
+  AUTHORITY_REQUEST_GUIDANCE,
+} from "../src/errors.js";
+
+test("installed plugin metadata invokes the qualified RLM skill", async () => {
+  const manifest = JSON.parse(
+    await readFile(".codex-plugin/plugin.json", "utf8"),
+  ) as {
+    readonly interface?: { readonly defaultPrompt?: readonly string[] };
+  };
+  assert.deepEqual(manifest.interface?.defaultPrompt, [
+    "Use $codex-rlm:rlm to investigate this question with persisted evidence.",
+  ]);
+
+  const skill = await readFile("skills/rlm/SKILL.md", "utf8");
+  const presentation = await readFile(
+    "skills/rlm/agents/openai.yaml",
+    "utf8",
+  );
+  assert.match(skill, /invokes \$codex-rlm:rlm/);
+  assert.match(skill, /Do not treat \$codex-rlm as a skill alias/);
+  assert.match(presentation, /Use \$codex-rlm:rlm/);
+});
 
 test("missing hook context returns AUTHORITY_MISSING before tool execution", async () => {
   const pluginData = await mkdtemp(join(tmpdir(), "codex-rlm-server-"));
@@ -25,7 +49,7 @@ test("missing hook context returns AUTHORITY_MISSING before tool execution", asy
     assert.equal(result.isError, true);
     assert.deepEqual(result.structuredContent, {
       category: "AUTHORITY_MISSING",
-      message: "AUTHORITY_MISSING",
+      message: `AUTHORITY_MISSING: ${AUTHORITY_HOOK_GUIDANCE}`,
     });
   } finally {
     await client.close();
@@ -53,7 +77,7 @@ test("legacy session-only hook context returns AUTHORITY_MISSING before tool exe
     assert.equal(result.isError, true);
     assert.deepEqual(result.structuredContent, {
       category: "AUTHORITY_MISSING",
-      message: "AUTHORITY_MISSING",
+      message: `AUTHORITY_MISSING: ${AUTHORITY_REQUEST_GUIDANCE}`,
     });
   } finally {
     await client.close();

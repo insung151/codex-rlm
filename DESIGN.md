@@ -39,6 +39,7 @@ The following decisions were selected during design review:
 | D20 — sensitive-data policy | A: user responsibility | The product does not promise automatic secret detection or DLP. Documentation must warn that project files and recorded outputs can contain sensitive data. |
 | D21 — distribution | A then B: personal local marketplace, then team-internal | Public directory submission is outside the initial roadmap. |
 | D22 — project identity | A: `codex-rlm` | Describe it as an RLM-inspired persistent research/REPL mode, not a paper-faithful recursive inference implementation. |
+| D23 — installed skill invocation | Plugin-qualified `$codex-rlm:rlm` | Installed plugin skills use the plugin component namespace. `$codex-rlm` is not a skill alias; `$rlm` is reserved for standalone local skill authoring. See ADR 0003. |
 
 These choices do not permit the MCP control plane or Python kernel to inherit
 host credentials or an unfiltered host environment. Environment minimization,
@@ -63,7 +64,7 @@ Codex RLM supplies those properties without modifying Codex itself.
 
 ## 2. Goals
 
-- Activate explicitly through `$rlm`.
+- Activate explicitly through `$codex-rlm:rlm`.
 - Keep the normal Codex experience unchanged while RLM is inactive.
 - Execute research code in persistent, session-scoped Python kernels.
 - Record every executed cell and its output in a valid Jupyter notebook.
@@ -98,7 +99,7 @@ Use one installable Codex plugin containing three cooperating layers:
 ```text
 Codex RLM plugin
 ├── Skill layer
-│   └── $rlm workflow and evidence discipline
+│   └── $codex-rlm:rlm workflow and evidence discipline
 ├── Policy layer
 │   └── Codex lifecycle hooks and active-session guard
 └── Runtime layer
@@ -189,7 +190,7 @@ session.
 
 ### 7.1 Activation
 
-1. The user invokes `$rlm` with a research objective.
+1. The user invokes `$codex-rlm:rlm` with a research objective.
 2. The skill calls `rlm_start`.
 3. A hook records the Codex session as RLM-active.
 4. The MCP server creates the RLM session, parent lane, kernel lease, notebook,
@@ -567,7 +568,7 @@ Current evidence:
 
 Implemented:
 
-1. plugin manifest and `$rlm` skill;
+1. plugin manifest and `$codex-rlm:rlm` skill;
 2. local MCP server with `start`, `python`, `status`, `submit_findings`,
    `complete`, and `cancel`;
 3. one parent lane and multiple isolated native-subagent lanes, coordinated

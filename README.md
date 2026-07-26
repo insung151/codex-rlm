@@ -4,7 +4,7 @@ Codex RLM is an opt-in Codex CLI plugin for evidence-first research with
 persistent, lane-isolated Python workers, reproducible notebooks, structured
 findings, and deterministic Markdown reports.
 
-The `0.1.0-alpha.3` developer preview is usable on Codex CLI. It uses a
+The `0.1.0-alpha.4` developer preview is usable on Codex CLI. It uses a
 visibly non-hardened local-process Python backend for development. It does not
 yet provide a production OS sandbox.
 
@@ -69,7 +69,7 @@ troubleshooting, see the [Korean user guide](./docs/user-guide.md).
 Start a new Codex CLI conversation in the project and invoke:
 
 ```text
-$rlm Investigate the CSV data, use two independent subagents, and produce an
+$codex-rlm:rlm Investigate the CSV data, use two independent subagents, and produce an
 evidence-backed report.
 ```
 
@@ -99,7 +99,8 @@ authority is injected into or persisted by Codex events.
 
 ## Implemented behavior
 
-- Explicit `$rlm` activation through a bundled skill.
+- Explicit `$codex-rlm:rlm` activation through the plugin-qualified bundled
+  skill. `$codex-rlm` is not a supported skill alias.
 - Additive host-tool behavior: only RLM MCP inputs are rewritten.
 - Parent and native-subagent lanes with separate persistent Python processes.
 - Cross-process session locking and lane-scoped state updates for native

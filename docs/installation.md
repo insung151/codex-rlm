@@ -3,7 +3,7 @@
 이 문서는 공개 Git Marketplace에서 Codex RLM을 설치하고, 정상 설치를
 확인하고, 이후 업데이트하거나 제거하는 절차를 설명합니다.
 
-Codex RLM `0.1.0-alpha.3`는 Linux 및 macOS용 Developer Preview입니다.
+Codex RLM `0.1.0-alpha.4`는 Linux 및 macOS용 Developer Preview입니다.
 현재 Python backend는 로컬 프로세스로 실행되며 **OS 수준의 보안
 sandbox가 아닙니다.** 신뢰할 수 없는 Python 코드나 production
 credential이 있는 host에서는 사용하지 마세요.
@@ -58,7 +58,7 @@ codex plugin list --marketplace insung151
 다음 항목이 나타나야 합니다.
 
 ```text
-codex-rlm@insung151  installed, enabled  0.1.0-alpha.3
+codex-rlm@insung151  installed, enabled  0.1.0-alpha.4
 ```
 
 ### 3. Hook 검토 및 신뢰
@@ -77,7 +77,7 @@ RLM hook은 RLM MCP 호출에만 단기 authority를 부여합니다. Hook이
 호출합니다.
 
 ```text
-$rlm 이 프로젝트의 README를 조사하고, 확인한 사실을 persisted
+$codex-rlm:rlm 이 프로젝트의 README를 조사하고, 확인한 사실을 persisted
 evidence에 연결한 짧은 보고서를 작성해 주세요.
 ```
 
@@ -165,7 +165,7 @@ codex plugin list --marketplace insung151
 `insung151`이 등록되지 않았다면 Marketplace 등록 명령부터 다시
 실행합니다.
 
-### 설치했지만 `$rlm`이 로드되지 않음
+### 설치했지만 `$codex-rlm:rlm`이 로드되지 않음
 
 설치 또는 업데이트 이전에 열어 둔 대화를 닫고 새 대화를 시작하세요.
 그런 다음 설치 상태를 다시 확인합니다.
@@ -186,6 +186,12 @@ Hook timeout 직후 `_rlm_context` 누락이 함께 보이면 설치된 버전�
 `AUTHORITY_MISSING`으로 안정적으로 거부됩니다. 동일 입력의 병렬
 subagent 호출은 요청별 구분이 추가된 `0.1.0-alpha.3` 이상이
 필요합니다.
+
+`0.1.0-alpha.4`부터 오류 메시지는 복구 절차를 함께 제공합니다.
+설치된 plugin skill의 정확한 이름은 `$codex-rlm:rlm`입니다.
+`$codex-rlm`은 skill alias가 아니며, `$rlm`은 standalone local skill
+authoring에서만 사용하는 비정규화 이름입니다. 정확한 이름이
+`/skills`에 없으면 새 대화를 시작하고 설치 상태를 다시 확인하세요.
 
 ### Node.js 또는 Python 실행 오류
 

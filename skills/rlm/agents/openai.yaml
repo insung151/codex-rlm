@@ -1,7 +1,7 @@
 interface:
   display_name: "Codex RLM Research"
   short_description: "Evidence-backed persistent Python research"
-  default_prompt: "Use $rlm to investigate this question with persisted evidence."
+  default_prompt: "Use $codex-rlm:rlm to investigate this question with persisted evidence."
 policy:
   allow_implicit_invocation: false
 dependencies:

@@ -1,12 +1,16 @@
 ---
 name: rlm
-description: Start an explicit Codex RLM evidence-first research workflow. Use only when the user invokes $rlm or explicitly asks to use Codex RLM for persistent Python research, isolated subagent lanes, notebooks, findings, or an evidence-backed report.
+description: Start an explicit Codex RLM evidence-first research workflow. Use when the user invokes $codex-rlm:rlm or explicitly asks to use Codex RLM for persistent Python research, isolated subagent lanes, notebooks, findings, or an evidence-backed report. Do not treat $codex-rlm as a skill alias.
 ---
 
 # Codex RLM
 
 Treat RLM as an opt-in research workflow. Preserve ordinary Codex tool
 behavior and use RLM tools only for RLM-owned state and evidence.
+
+The plugin-qualified invocation is `$codex-rlm:rlm`. `$codex-rlm` is not a
+skill alias, and the unqualified `$rlm` name applies only to standalone local
+skill authoring rather than this installed plugin.
 
 ## Start
 
@@ -64,7 +68,9 @@ it.
 - Never author `_rlm_context`. The hook injects non-secret session and request
   pseudonyms; executable authority remains in the plugin-private exchange.
 - If the hook does not inject `_rlm_context`, expect `AUTHORITY_MISSING` and
-  stop. Never retry by authoring the reserved field.
+  stop. Start a new conversation, invoke `$codex-rlm:rlm`, and verify the
+  bundled hook is trusted in `/hooks`. Never retry by authoring the reserved
+  field.
 - Keep normal Codex tools under their existing sandbox and approval behavior.
 - Report a missing or failed hook as a compatibility failure rather than
   bypassing it.

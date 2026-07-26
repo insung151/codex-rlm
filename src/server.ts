@@ -7,7 +7,12 @@ import {
   reapAuthorizations,
 } from "./security/authority.js";
 import { RlmController } from "./runtime/controller.js";
-import { publicError, RlmError } from "./errors.js";
+import {
+  AUTHORITY_HOOK_GUIDANCE,
+  AUTHORITY_REQUEST_GUIDANCE,
+  publicError,
+  RlmError,
+} from "./errors.js";
 import { resolvePluginData } from "./spike/provenance.js";
 
 const contextSchema = z.object({
@@ -77,10 +82,10 @@ export function createProductionServer(
   const pluginData = resolvePluginData(environment);
   const controller = new RlmController(pluginData, pluginRoot());
   const server = new McpServer(
-    { name: "codex-rlm", version: "0.1.0-alpha.3" },
+    { name: "codex-rlm", version: "0.1.0-alpha.4" },
     {
       instructions:
-        "Use RLM only after explicit $rlm invocation. Reserved _rlm_context contains non-secret session and request pseudonyms injected by the hook; never author it. Authority stays in the plugin-private exchange. The local-process Python backend is non-hardened.",
+        "Use RLM only after explicit $codex-rlm:rlm invocation. Reserved _rlm_context contains non-secret session and request pseudonyms injected by the hook; never author it. Authority stays in the plugin-private exchange. The local-process Python backend is non-hardened.",
     },
   );
 
@@ -94,7 +99,13 @@ export function createProductionServer(
   ): Promise<ToolResult> {
     try {
       if (context === undefined) {
-        throw new RlmError("AUTHORITY_MISSING");
+        throw new RlmError("AUTHORITY_MISSING", AUTHORITY_HOOK_GUIDANCE);
+      }
+      if (context.request === undefined) {
+        throw new RlmError(
+          "AUTHORITY_MISSING",
+          AUTHORITY_REQUEST_GUIDANCE,
+        );
       }
       const authority = await consumeAuthorization(
         pluginData,

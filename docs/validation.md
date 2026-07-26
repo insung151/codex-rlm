@@ -9,6 +9,17 @@ This record distinguishes the implemented local development slice from the
 deferred hardened product. Generated sessions under `.codex/rlm/` are ignored
 runtime evidence and are not source artifacts.
 
+## Invocation-guidance release-candidate addendum
+
+Release candidate: `0.1.0-alpha.4`
+Candidate date: 2026-07-27
+
+The candidate aligns installed-plugin prompts and documentation on
+`$codex-rlm:rlm`. It explicitly rejects `$codex-rlm` as a supposed alias and
+records the compatibility decision in ADR 0003. Contract tests verify bounded,
+non-secret `AUTHORITY_MISSING` recovery guidance for a wholly absent hook
+context and for a legacy session-only context without `tool_use_id`.
+
 ## Parallel-authority release-candidate addendum
 
 Release candidate: `0.1.0-alpha.3`
@@ -55,7 +66,7 @@ check distinct from automated runtime integration tests.
 
 | Contract | Current evidence |
 | --- | --- |
-| Local install and `$rlm` | `codex plugin list` reports `codex-rlm@personal` installed and enabled at the version above. Multiple fresh `codex exec` conversations invoked `$rlm` and called the bundled `rlm` MCP server. |
+| Local install and `$codex-rlm:rlm` | `codex plugin list` reports `codex-rlm@personal` installed and enabled at the version above. Multiple fresh `codex exec` conversations invoked the bundled skill and called the `rlm` MCP server. |
 | Additive ordinary tools | Live `pwd` before and after the final RLM session returned the same project root. The hook unit test proves non-RLM input is not rewritten. |
 | Independent persistent kernels | The final matrix ran two native subagents concurrently. `lane-1` persisted `v=600` then returned `606`; `lane-2` persisted `v=500` then returned `505`. |
 | Notebook recording | Both final lanes contain two successful cells, and `master.ipynb` contains lane order `lane-1`, then `lane-2`, with source execution counts 1 and 2. Unit coverage also preserves failed, timed-out, and truncated cells. |
@@ -65,7 +76,7 @@ check distinct from automated runtime integration tests.
 | Process cleanup | No `rlm_worker.py` or RLM MCP server remained after final completion. Tests cover completion, cancellation, timeout, normal MCP shutdown, Linux parent death, and parent cleanup of workers registered by separate lane controllers. |
 | No authority or credential leakage | Codex-visible arguments contain only non-secret `_rlm_context` session/request pseudonyms; private one-time records are consumed and removed on `SessionEnd`. Artifact/private-log scans found no `_rlm_auth`, test credential marker, common private-key header, or bearer authority. Worker environment inheritance is minimized and host reads outside project/artifact/runtime roots are denied as defense in depth. |
 | Automated checks | `npm run typecheck`, 15 Node tests, `npm audit --omit=dev`, plugin validation, and skill validation pass. |
-| User documentation | `README.md` and `docs/user-guide.md` contain requirements, build/install/reinstall, prompt examples, `$rlm` lifecycle, path use, artifact inspection, cancellation, troubleshooting, security label, and limitations. |
+| User documentation | `README.md` and `docs/user-guide.md` contain requirements, build/install/reinstall, prompt examples, `$codex-rlm:rlm` lifecycle, path use, artifact inspection, cancellation, troubleshooting, security label, and limitations. |
 
 Final live outputs were validated under the ignored
 `.codex/rlm/<session-id>/` directory and intentionally were not committed.

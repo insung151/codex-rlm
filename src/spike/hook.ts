@@ -15,6 +15,10 @@ import {
   toolInputDigest,
 } from "../security/authority.js";
 import { SessionRepository } from "../domain/session-repository.js";
+import {
+  AUTHORITY_HOOK_GUIDANCE,
+  AUTHORITY_REQUEST_GUIDANCE,
+} from "../errors.js";
 
 interface HookInput {
   readonly session_id?: unknown;
@@ -144,8 +148,11 @@ export async function processHook(
     pluginData,
     optionalString(input.tool_use_id),
   );
-  if (session === null || turn === null || request === null || cwd === null) {
-    return deny("RLM authority context is incomplete");
+  if (session === null || turn === null || cwd === null) {
+    return deny(AUTHORITY_HOOK_GUIDANCE);
+  }
+  if (request === null) {
+    return deny(AUTHORITY_REQUEST_GUIDANCE);
   }
   if (agent !== null) {
     const matchingStarts = readStructuralEvents(pluginData).filter(

@@ -39,3 +39,9 @@ rejected with a stable category.
 The first slice exposes the stable categories listed in `src/errors.ts`.
 Internal stack traces, authority records, process IDs, private paths, and
 inherited environment values are not returned by tools.
+
+`AUTHORITY_MISSING` preserves its stable category while returning bounded
+recovery guidance. A completely absent context directs the user to start a new
+conversation, invoke `$codex-rlm:rlm`, and verify `/hooks` trust. A
+session-only context identifies missing `PreToolUse.tool_use_id` compatibility.
+Neither message exposes private authority material.

@@ -13,6 +13,10 @@ import {
   type StructuralEvent,
 } from "../src/spike/provenance.js";
 import { SessionRepository } from "../src/domain/session-repository.js";
+import {
+  AUTHORITY_HOOK_GUIDANCE,
+  AUTHORITY_REQUEST_GUIDANCE,
+} from "../src/errors.js";
 
 function environment(): NodeJS.ProcessEnv {
   return {
@@ -105,6 +109,26 @@ test("RLM PreToolUse fails closed when tool_use_id is missing", async () => {
   );
   const specific = result?.hookSpecificOutput as Record<string, unknown>;
   assert.equal(specific.permissionDecision, "deny");
+  assert.equal(specific.permissionDecisionReason, AUTHORITY_REQUEST_GUIDANCE);
+});
+
+test("RLM PreToolUse explains incomplete base hook context without leaking input", async () => {
+  const env = environment();
+  const result = await processHook(
+    {
+      session_id: "session-secret",
+      turn_id: "turn-secret",
+      tool_use_id: "tool-secret",
+      hook_event_name: "PreToolUse",
+      tool_name: "mcp__rlm__rlm_start",
+      tool_input: { objective: "private objective" },
+    },
+    env,
+  );
+  const specific = result?.hookSpecificOutput as Record<string, unknown>;
+  assert.equal(specific.permissionDecision, "deny");
+  assert.equal(specific.permissionDecisionReason, AUTHORITY_HOOK_GUIDANCE);
+  assert.doesNotMatch(JSON.stringify(result), /private objective|session-secret/);
 });
 
 test("two agents sharing one turn are classified ambiguous", () => {

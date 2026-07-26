@@ -17,6 +17,8 @@ authorization implementation.
 
 Current Codex documentation states that:
 
+- plugin-bundled skills use the plugin component namespace, making this
+  installed skill `$codex-rlm:rlm`;
 - plugin-bundled hooks are supported;
 - common hook input includes `session_id`, `cwd`, and event name;
 - turn-scoped events include `turn_id`;
@@ -68,10 +70,11 @@ Do not record prompts, raw tool arguments, credentials, or authority material.
 ### Parent call
 
 1. Start one Codex CLI session.
-2. Invoke the diagnostic RLM MCP tool from the parent.
-3. Confirm `PreToolUse` sees a stable `session_id` and `turn_id`.
-4. Inject a harmless marker into `updatedInput`.
-5. Confirm the MCP server receives the marker.
+2. Confirm `/skills` lists `codex-rlm:rlm` and invoke that skill explicitly.
+3. Invoke the diagnostic RLM MCP tool from the parent.
+4. Confirm `PreToolUse` sees a stable `session_id` and `turn_id`.
+5. Inject a harmless marker into `updatedInput`.
+6. Confirm the MCP server receives the marker.
 
 ### Ordinary tool control
 

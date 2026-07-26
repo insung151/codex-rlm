@@ -5,7 +5,8 @@ The current executable slice tests the selected D7 fallback:
 correlatable, and a private one-time authorization record must be consumed
 before the protected operation.
 
-1. Call `rlm_diagnostic` from the parent.
+1. Start a fresh conversation with `$codex-rlm:rlm`, then call
+   `rlm_diagnostic` from the parent.
 2. Ask one native subagent to call the same tool.
 3. Ask two native subagents to call it concurrently.
 4. Give both subagents identical diagnostic input and confirm each result

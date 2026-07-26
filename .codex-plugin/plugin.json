@@ -1,6 +1,6 @@
 {
   "name": "codex-rlm",
-  "version": "0.1.0-alpha.3",
+  "version": "0.1.0-alpha.4",
   "description": "Evidence-backed persistent research mode for Codex",
   "author": {
     "name": "Codex RLM contributors"
@@ -28,7 +28,7 @@
       "Interactive"
     ],
     "defaultPrompt": [
-      "Use $rlm to investigate this question with persisted evidence."
+      "Use $codex-rlm:rlm to investigate this question with persisted evidence."
     ]
   }
 }

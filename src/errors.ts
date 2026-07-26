@@ -21,6 +21,12 @@ export const errorCategories = [
 
 export type ErrorCategory = (typeof errorCategories)[number];
 
+export const AUTHORITY_HOOK_GUIDANCE =
+  "Codex RLM hook context was not injected. Start a new Codex conversation, invoke $codex-rlm:rlm, and verify the codex-rlm hook is trusted in /hooks.";
+
+export const AUTHORITY_REQUEST_GUIDANCE =
+  "Codex RLM request context is incomplete. Use a Codex release whose PreToolUse event includes tool_use_id, then start a new conversation and invoke $codex-rlm:rlm.";
+
 export class RlmError extends Error {
   public readonly category: ErrorCategory;
 

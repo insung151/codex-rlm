@@ -26,7 +26,7 @@ matrix.
 
 ## 2. Product in one paragraph
 
-Codex RLM is an additive Codex plugin. Invoking `$rlm` adds a persistent,
+Codex RLM is an additive Codex plugin. Invoking `$codex-rlm:rlm` adds a persistent,
 notebook-recorded research runtime while preserving ordinary Codex tools and
 their existing sandbox/approval behavior. A bundled local stdio MCP server owns
 RLM sessions, isolated parent/subagent lanes, Python workers, notebooks,
@@ -91,7 +91,7 @@ native delegation in the default profile. Tests must prove both sides:
 
 ### Included
 
-1. Minimal plugin manifest and `$rlm` skill.
+1. Minimal plugin manifest and `$codex-rlm:rlm` skill.
 2. Local stdio MCP server.
 3. D7 compatibility spike and selected authority path.
 4. Session and lane state machines.
@@ -567,7 +567,7 @@ Run focused verification after each phase:
 
 Minimum E2E proof before declaring the first slice usable:
 
-- `$rlm` starts without changing an ordinary Codex tool call;
+- `$codex-rlm:rlm` starts without changing an ordinary Codex tool call;
 - parent Python state persists across two cells;
 - two subagents receive different kernels;
 - one subagent cannot use parent-only tools or sibling evidence;
