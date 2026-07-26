@@ -67,7 +67,7 @@ test("unverified control replies block cleanup and preserve the registry", async
   const pluginData = await mkdtemp(join(tmpdir(), "codex-rlm-registry-"));
   const sessionId = "unverified-session";
   const laneId = "lane-1";
-  const controlRoot = join(pluginData, "control");
+  const controlRoot = join(pluginData, "c");
   const registryRoot = join(
     pluginData,
     "process-registry",

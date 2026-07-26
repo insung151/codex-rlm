@@ -219,7 +219,7 @@ export class WorkerManager {
   }
 
   #controlRoot(): string {
-    return join(this.#pluginData, "control");
+    return join(this.#pluginData, "c");
   }
 
   public assertAvailable(): void {
@@ -287,7 +287,7 @@ export class WorkerManager {
         mode: 0o700,
       }).then(() => this.#controlRoot()),
     );
-    const path = join(root, `${randomBytes(12).toString("hex")}.sock`);
+    const path = join(root, `${randomBytes(6).toString("hex")}.sock`);
     if (Buffer.byteLength(path) > 100) {
       throw new RlmError(
         "BACKEND_UNAVAILABLE",

@@ -68,9 +68,9 @@ interpreter or the control endpoint.
 - A same-user process can inspect or tamper with local plugin data. That is
   already outside the security claims of the non-hardened backend; the socket
   and registry are nevertheless owner-only and contain no reusable authority.
-- Unix-domain socket path limits apply. The runtime uses a short randomized
-  path in plugin data and reports `BACKEND_UNAVAILABLE` when the configured
-  plugin-data path cannot support it.
+- Unix-domain socket path limits apply. The runtime uses a deliberately short
+  control directory and randomized socket name in plugin data, and reports
+  `BACKEND_UNAVAILABLE` only when that shortened path still cannot fit.
 - macOS and Linux use the same registry and cleanup protocol. Windows remains
   unsupported by this local backend until a separate transport decision is
   made.
