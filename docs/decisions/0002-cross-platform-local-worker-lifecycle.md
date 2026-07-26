@@ -41,10 +41,10 @@ unavailable or older interpreter before creating an RLM session.
 
 ## Decision
 
-Each local worker owns a Unix-domain control socket under the plugin data
-directory. The process registry stores the schema version, RLM session ID, lane
-ID, and socket path; it stores no capability, credential, or raw Codex session
-identifier. The socket is created with owner-only permissions.
+Each local worker owns a Unix-domain control socket. The process registry stays
+under the plugin data directory and stores the schema version, RLM session ID,
+lane ID, and socket path; it stores no capability, credential, or raw Codex
+session identifier. The socket is created with owner-only permissions.
 
 A controller that did not spawn a registered worker requests shutdown through
 that socket. The worker validates the registered session and lane identity
@@ -68,9 +68,11 @@ interpreter or the control endpoint.
 - A same-user process can inspect or tamper with local plugin data. That is
   already outside the security claims of the non-hardened backend; the socket
   and registry are nevertheless owner-only and contain no reusable authority.
-- Unix-domain socket path limits apply. The runtime uses a deliberately short
-  control directory and randomized socket name in plugin data, and reports
-  `BACKEND_UNAVAILABLE` only when that shortened path still cannot fit.
+- Unix-domain socket path limits apply. The runtime first uses a deliberately
+  short directory in plugin data. If even that path cannot fit, it uses an
+  owner-only, non-symlink control directory under `/tmp`; the authoritative
+  registry remains in plugin data. A path outside those validated roots is
+  rejected before connection.
 - macOS and Linux use the same registry and cleanup protocol. Windows remains
   unsupported by this local backend until a separate transport decision is
   made.

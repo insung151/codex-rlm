@@ -74,9 +74,9 @@ test("unverified control replies block cleanup and preserve the registry", async
     "workers",
     sessionId,
   );
-  await mkdir(controlRoot, { recursive: true });
+  await mkdir(controlRoot, { recursive: true, mode: 0o700 });
   await mkdir(registryRoot, { recursive: true });
-  const controlSocket = join(controlRoot, "unverified.sock");
+  const controlSocket = join(controlRoot, "aaaaaaaaaaaa.sock");
   const registryPath = join(registryRoot, `${laneId}.json`);
   let acceptedConnection: Socket | undefined;
   const server = createServer((connection) => {

@@ -4,7 +4,11 @@ import { join } from "node:path";
 import { WorkerManager } from "../../src/kernels/worker-manager.js";
 import type { LaneRecord, SessionRecord } from "../../src/domain/types.js";
 
-const pluginData = await mkdtemp(join(tmpdir(), "codex-rlm-owner-data-"));
+const pluginDataBase = await mkdtemp(
+  join(tmpdir(), "codex-rlm-owner-data-"),
+);
+const pluginData = join(pluginDataBase, "x".repeat(70));
+await mkdir(pluginData, { recursive: true });
 const projectRoot = await mkdtemp(join(tmpdir(), "codex-rlm-owner-project-"));
 const artifactRoot = join(projectRoot, ".codex", "rlm", "owner-test");
 const lane: LaneRecord = {

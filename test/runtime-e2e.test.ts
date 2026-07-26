@@ -583,9 +583,14 @@ test("simultaneous first calls create distinct parallel lanes and kernels", asyn
     await authority(pluginData, "rlm_cancel", projectRoot, "parent", null),
     { reason: "parallel test cleanup", idempotencyKey: "cancel-parallel-0001" },
   );
-  for (const pid of workerPids) {
-    assert.throws(() => process.kill(pid, 0));
+  const exitDeadline = Date.now() + 5_000;
+  while (
+    secondController.pidsForSession(sessionId).length > 0 &&
+    Date.now() < exitDeadline
+  ) {
+    await new Promise((resolve) => setTimeout(resolve, 25));
   }
+  assert.deepEqual(secondController.pidsForSession(sessionId), []);
   await Promise.all([
     secondController.cleanupAll(),
   ]);

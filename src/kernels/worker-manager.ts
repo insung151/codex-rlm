@@ -5,9 +5,16 @@ import {
 } from "node:child_process";
 import { createInterface, type Interface } from "node:readline";
 import { createConnection } from "node:net";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import { randomBytes } from "node:crypto";
-import { mkdir, readFile, readdir, realpath, rm } from "node:fs/promises";
+import {
+  lstat,
+  mkdir,
+  readFile,
+  readdir,
+  realpath,
+  rm,
+} from "node:fs/promises";
 import { RlmError } from "../errors.js";
 import { atomicWriteJson } from "../persistence/atomic.js";
 import type { CellRecord, LaneRecord, SessionRecord } from "../domain/types.js";
@@ -222,6 +229,36 @@ export class WorkerManager {
     return join(this.#pluginData, "c");
   }
 
+  #fallbackControlRoot(): string {
+    const uid = process.getuid?.();
+    if (uid === undefined) {
+      throw new RlmError("BACKEND_UNAVAILABLE");
+    }
+    return `/tmp/codex-rlm-${String(uid)}`;
+  }
+
+  async #prepareControlRoot(root: string): Promise<string> {
+    await mkdir(root, {
+      recursive: true,
+      mode: 0o700,
+    });
+    const stats = await lstat(root);
+    const uid = process.getuid?.();
+    if (
+      !stats.isDirectory() ||
+      stats.isSymbolicLink() ||
+      uid === undefined ||
+      stats.uid !== uid ||
+      (stats.mode & 0o077) !== 0
+    ) {
+      throw new RlmError(
+        "BACKEND_UNAVAILABLE",
+        "worker control directory is not owner-private",
+      );
+    }
+    return realpath(root);
+  }
+
   public assertAvailable(): void {
     if (process.platform === "win32") {
       throw new RlmError(
@@ -281,20 +318,43 @@ export class WorkerManager {
   }
 
   async #newControlSocket(): Promise<string> {
-    const root = await realpath(
-      await mkdir(this.#controlRoot(), {
-        recursive: true,
-        mode: 0o700,
-      }).then(() => this.#controlRoot()),
-    );
-    const path = join(root, `${randomBytes(6).toString("hex")}.sock`);
+    let root = await this.#prepareControlRoot(this.#controlRoot());
+    let path = join(root, `${randomBytes(6).toString("hex")}.sock`);
     if (Buffer.byteLength(path) > 100) {
-      throw new RlmError(
-        "BACKEND_UNAVAILABLE",
-        "plugin data path is too long for a Unix control socket",
-      );
+      root = await this.#prepareControlRoot(this.#fallbackControlRoot());
+      path = join(root, `${randomBytes(6).toString("hex")}.sock`);
+    }
+    if (Buffer.byteLength(path) > 100) {
+      throw new RlmError("BACKEND_UNAVAILABLE");
     }
     return path;
+  }
+
+  async #allowedControlSocket(path: string): Promise<boolean> {
+    if (!/^[a-f0-9]{12}\.sock$/.test(path.slice(path.lastIndexOf("/") + 1))) {
+      return false;
+    }
+    const roots = await Promise.all(
+      [this.#controlRoot(), this.#fallbackControlRoot()].map(async (root) => {
+        try {
+          const stats = await lstat(root);
+          const uid = process.getuid?.();
+          if (
+            !stats.isDirectory() ||
+            stats.isSymbolicLink() ||
+            uid === undefined ||
+            stats.uid !== uid ||
+            (stats.mode & 0o077) !== 0
+          ) {
+            return null;
+          }
+          return await realpath(root);
+        } catch (error: unknown) {
+          return null;
+        }
+      }),
+    );
+    return roots.some((root) => root !== null && dirname(path) === root);
   }
 
   async #registerWorker(
@@ -368,7 +428,7 @@ export class WorkerManager {
               record.sessionId !== sessionId ||
               typeof record.laneId !== "string" ||
               typeof record.controlSocket !== "string" ||
-              !record.controlSocket.startsWith(`${this.#controlRoot()}/`)
+              !(await this.#allowedControlSocket(record.controlSocket))
             ) {
               throw new Error("invalid worker registry record");
             }
@@ -611,7 +671,11 @@ export class WorkerManager {
     return [...this.#workers.entries()]
       .filter(([key]) => key.startsWith(`${sessionId}:`))
       .flatMap(([, worker]) =>
-        worker.process.pid === undefined ? [] : [worker.process.pid],
+        worker.process.pid === undefined ||
+        worker.process.exitCode !== null ||
+        worker.process.signalCode !== null
+          ? []
+          : [worker.process.pid],
       );
   }
 }
