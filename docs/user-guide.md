@@ -11,7 +11,8 @@ Python 코드나 host credential이 노출될 수 있는 환경에서는 사용�
 ## 1. 요구사항
 
 - Codex CLI 0.145.0 또는 compatibility matrix를 다시 통과한 버전
-- Node.js 22 이상과 npm
+- Node.js 22 이상
+- 소스에서 빌드할 때만 npm
 - `/usr/bin/python3`에 설치된 Python 3.11 이상
 - worker parent-death 정리를 보장하려면 Linux
 
@@ -26,7 +27,9 @@ npm --version
 
 ## 2. 공개 Marketplace에서 설치
 
-공개 Git Marketplace를 등록하고 플러그인을 설치합니다.
+전체 요구사항과 단계별 확인, 업데이트, 제거, 설치 오류 해결은
+[설치 가이드](./installation.md)를 참고하세요. 빠른 설치 명령은
+다음과 같습니다.
 
 ```bash
 codex plugin marketplace add insung151/codex-plugins

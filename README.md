@@ -28,18 +28,8 @@ codex plugin list
 Start a new Codex conversation after installation. Open `/hooks` once and
 review/trust the bundled hooks before starting an RLM session.
 
-To update to the latest published preview:
-
-```bash
-codex plugin marketplace upgrade insung151
-codex plugin add codex-rlm@insung151
-```
-
-To uninstall:
-
-```bash
-codex plugin remove codex-rlm@insung151
-```
+See the [Korean installation guide](./docs/installation.md) for requirements,
+verification, updates, removal, source builds, and troubleshooting.
 
 ## Build and install from source
 
@@ -69,7 +59,7 @@ For vetted non-interactive automation only, Codex also supports
 
 ## Use
 
-For installation, prompt patterns, artifact inspection, cancellation, and
+For prompt patterns, artifact inspection, cancellation, and runtime
 troubleshooting, see the [Korean user guide](./docs/user-guide.md).
 
 Start a new Codex CLI conversation in the project and invoke:
