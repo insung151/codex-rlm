@@ -143,4 +143,4 @@ evidence map is in [docs/validation.md](./docs/validation.md).
 
 ## License
 
-No open-source license has been selected yet.
+Licensed under the [Apache License 2.0](./LICENSE).
